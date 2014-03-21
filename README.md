@@ -1,5 +1,7 @@
 # FQueue
 
+[![Build Status](https://travis-ci.org/caseycs/fqueue.svg?branch=master)](https://travis-ci.org/caseycs/fqueue)
+
 Forking queue processor on PHP.
 
 Let's look in typical web project - for example e-commerce online shop. There are a lot of reasons,

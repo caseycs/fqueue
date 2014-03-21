@@ -1,5 +1,7 @@
 # FQueue
 
+[![Build Status](https://travis-ci.org/caseycs/fqueue.svg?branch=master)](https://travis-ci.org/caseycs/fqueue)
+
 Forking queue on PHP
 
 ## Usage example:

@@ -1,5 +1,5 @@
 <?php
-class SimpleTest  extends \FQueue\FQueueTestCase
+class SimpleTest extends \FQueue\FQueueTestCase
 {
     /**
      * @expectedException InvalidArgumentException

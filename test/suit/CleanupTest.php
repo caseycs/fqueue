@@ -7,7 +7,12 @@ class CleanupTest extends \FQueue\FQueueTestCase
         $Storage
             ->expects($this->once())
             ->method('cleanup')
-            ->with($this->equalTo(time() - 50));
+            ->with(
+                $this->logicalAnd(
+                    $this->greaterThanOrEqual(time() - 50 - 3),
+                    $this->lessThanOrEqual(time() - 50 + 3)
+                )
+        );
 
         $Storage
             ->expects($this->once())

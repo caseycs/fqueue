@@ -10,6 +10,13 @@ class JobRow
     private $class, $id;
     private $params = array();
 
+    public function __construct($class = null, array $params = array(), $id = null)
+    {
+        $this->class = $class;
+        $this->params = $params;
+        $this->id = $id;
+    }
+
     public function getClass()
     {
         return $this->class;

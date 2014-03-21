@@ -49,11 +49,6 @@ class ManagerTest extends \FQueue\FQueueTestCase
             ->method('pcntl_wait')
             ->with($this->anything(), WNOHANG || WUNTRACED);
         $Isolator->expects($this->once())->method('pcntl_fork')->will($this->returnValue($pid));
-        $Isolator
-            ->expects($this->once())
-            ->method('posix_kill')
-            ->with($pid, 0)
-            ->will($this->returnValue(1));
 
         $Manager = new FQueue\Manager($this->getLogger(), $Storage, $Isolator);
         $Manager->addQueue('test', 1, 1, 10, $this->getLogger());

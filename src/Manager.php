@@ -88,7 +88,7 @@ class Manager
             $this->cycle();
             $this->cycles_done ++;
 
-            if ($this->cycles_limit === null || $this->cycles_done >= $this->cycles_limit) break;
+            if ($this->cycles_limit !== null && $this->cycles_done >= $this->cycles_limit) break;
 
             usleep($this->cycle_usleep);
         }
@@ -104,12 +104,16 @@ class Manager
 
     private function cycle()
     {
+        $this->Logger->debug('cycle start');
+
         // stats
         $stats = '';
         foreach ($this->jobs_queue as $queue => $items) {
-            $stats .= "$queue:" . count($items) . ' ';
+            $stats .= "$queue: " . count($items) . ' ';
         }
-        $this->Logger->debug('in-memory queue size: ' . $stats);
+        $this->Logger->debug('in-memory queue jobs: ' . $stats);
+
+        $this->actualizeForks();
 
         // start new forks
         foreach ($this->queues as $queue => $queue_params) {
@@ -120,9 +124,8 @@ class Manager
                 $limit = $queue_params['manager_queue'] - count($this->jobs_queue[$queue]);
                 $jobs_new = $this->Storage->getJobs($queue, $limit);
                 $this->jobs_queue[$queue] = array_merge($this->jobs_queue[$queue], $jobs_new);
-                $this->Logger->debug("{$queue}: in-memory queue: "
-                    . count($this->jobs_queue[$queue])
-                    . ", fetched: " . count($jobs_new));
+                $this->Logger->debug("{$queue}: fetched jobs: " . count($jobs_new)
+                    . " total in-memory jobs: " . count($this->jobs_queue[$queue]));
             } else {
                 $this->Logger->debug("{$queue}: in-memory jobs limit reached: "
                     . $queue_params['manager_queue']);
@@ -184,7 +187,10 @@ class Manager
         // defunc zombie processes - feel free!
         $status = null;
         $this->isolator->pcntl_wait($status, WNOHANG || WUNTRACED);
+    }
 
+    private function actualizeForks()
+    {
         //remove dead forks
         foreach ($this->forks_queue_pids as $queue => $pids) {
             foreach ($pids as $index => $pid_info) {
@@ -194,7 +200,7 @@ class Manager
                     if (time() >= $pid_info['time_kill_timeout']) {
                         $kill_result = $this->isolator->posix_kill($pid_info['pid'], SIGTERM);
                         $this->Logger->error("{$queue}: FORK {$pid_info['pid']} timeout, kill result: "
-                             . var_export($kill_result, true));
+                            . var_export($kill_result, true));
                         unset($this->forks_queue_pids[$queue][$index]);
                     }
                 } else {
@@ -203,7 +209,7 @@ class Manager
                 }
             }
             // reindex array
-            $forks_queue_pids[$queue] = array_values($this->forks_queue_pids[$queue]);
+            $this->forks_queue_pids[$queue] = array_values($this->forks_queue_pids[$queue]);
         }
     }
 

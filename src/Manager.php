@@ -81,7 +81,7 @@ class Manager
     {
         if ($this->queues === array()) throw new \InvalidArgumentException;
 
-        //setup tick hander
+        // setup tick hander
 
         while (true) {
             $this->cleanup();
@@ -104,18 +104,18 @@ class Manager
 
     private function cycle()
     {
-        //stats
+        // stats
         $stats = '';
         foreach ($this->jobs_queue as $queue => $items) {
             $stats .= "$queue:" . count($items) . ' ';
         }
         $this->Logger->debug('in-memory queue size: ' . $stats);
 
-        //start new forks
+        // start new forks
         foreach ($this->queues as $queue => $queue_params) {
             if (!isset($this->jobs_queue[$queue])) $this->jobs_queue[$queue] = array();
 
-            //fetch queue
+            // fetch queue
             if (count($this->jobs_queue[$queue]) < $queue_params['manager_queue']) {
                 $limit = $queue_params['manager_queue'] - count($this->jobs_queue[$queue]);
                 $jobs_new = $this->Storage->getJobs($queue, $limit);
@@ -130,58 +130,79 @@ class Manager
 
             if ($this->jobs_queue[$queue] === array()) continue;
 
-            //check if fork is avaliable
+            // check if fork is avaliable
             if (isset($this->forks_queue_pids[$queue]) && count($this->forks_queue_pids[$queue]) >= $this->queues[$queue]['forks']) {
                 $this->Logger->debug("{$queue}: forks limit reached");
                 continue;
             }
 
-            //cut queue part
+            // cut queue part
             $jobs2fork = array_splice($this->jobs_queue[$queue], 0, $this->queues[$queue]['tasks_per_fork']);
 
-            //calculate max_execution_time
+            // calculate max_execution_time
             /* @var JobRow $JobRow */
             $max_execution_time = 0;
             foreach ($jobs2fork as $index => $JobRow) {
                 $Job = $this->initJob($JobRow, $this->Logger);
-                if (!$Job) unset($jobs2fork[$index]);
+                if (!$Job) {
+                    unset($jobs2fork[$index]);
+                    continue;
+                }
                 $max_execution_time += $Job->getMaxExecutionTime();
             }
-            ($max_execution_time);
 
-            //make new fork
-            $this->Logger->debug("{$queue}: make new fork, jobs:" . count($jobs2fork));
+            if ($jobs2fork === array()) {
+                $this->Logger->debug("{$queue}: no jobs left, skip cycle");
+                continue;
+            }
+
             $pid = $this->isolator->pcntl_fork();
-
             if ($pid === -1) {
                 $this->Logger->emergency("{$queue}: could not fork");
-                exit(0);
+                $this->isolator->exit(0);
             } elseif ($pid) {
                 // we are the parent
-                $this->forks_queue_pids[$queue][] = $pid;
-            } else {
-                $sid = $this->isolator->posix_setsid();
-                if ($sid < 0) {
-                    $this->Logger->emergency("{$queue}: FORK posix_setsid failed");
-                    exit(0);
-                }
+                $context = array(
+                    'queue' => $queue,
+                    'pid' => $pid,
+                    'jobs' => count($jobs2fork),
+                    'max_execution_time' => $max_execution_time,
+                );
+                $this->Logger->info("making new fork", $context);
 
+                $this->forks_queue_pids[$queue][] = array(
+                    'pid' => $pid,
+                    'time_start' => time(),
+                    'time_kill_timeout' => time() + $max_execution_time,
+                );
+            } else {
+                // fork
                 $this->processFork($queue, $jobs2fork, $max_execution_time, $queue_params['logger']);
-                exit(0);
             }
         }
 
-        //defunc zombie processes - feel free!
+        // defunc zombie processes - feel free!
+        $status = null;
         $this->isolator->pcntl_wait($status, WNOHANG || WUNTRACED);
 
         //remove dead forks
         foreach ($this->forks_queue_pids as $queue => $pids) {
-            foreach ($pids as $index => $pid) {
-                //unset dead
-                if (!$this->isolator->posix_kill($pid, 0)) unset($this->forks_queue_pids[$queue][$index]);
-                //force kill timeouted
+            foreach ($pids as $index => $pid_info) {
+                if ($this->isolator->posix_kill($pid_info['pid'], SIG_DFL)) {
+                    $this->Logger->debug("{$queue}: FORK {$pid_info['pid']} alive");
+                    //check timeout
+                    if (time() >= $pid_info['time_kill_timeout']) {
+                        $kill_result = $this->isolator->posix_kill($pid_info['pid'], SIGTERM);
+                        $this->Logger->error("{$queue}: FORK {$pid_info['pid']} timeout, kill result: "
+                             . var_export($kill_result, true));
+                        unset($this->forks_queue_pids[$queue][$index]);
+                    }
+                } else {
+                    $this->Logger->debug("{$queue}: FORK {$pid_info['pid']} dead");
+                    unset($this->forks_queue_pids[$queue][$index]);
+                }
             }
-            //reindex array
+            // reindex array
             $forks_queue_pids[$queue] = array_values($this->forks_queue_pids[$queue]);
         }
     }
@@ -193,17 +214,33 @@ class Manager
      */
     private function processFork($queue, array $jobs, $max_execution_time, \Psr\Log\LoggerInterface $Logger)
     {
-        $Logger->info("{$queue}: FORK pid: " . getmypid()
-            . ", jobs:" . count($jobs)
-            . ', max_execution_time: ' . $max_execution_time);
+        $sid = $this->isolator->posix_setsid();
+        if ($sid < 0) {
+            $this->Logger->emergency("{$queue}: FORK posix_setsid failed");
+            $this->isolator->exit(0);
+        }
 
-        set_time_limit($max_execution_time);
+        $context = array(
+            'queue' => $queue,
+            'pid' => getmypid(),
+            'jobs' => count($jobs),
+            'max_execution_time' => $max_execution_time,
+        );
+        $Logger->info("FORK", $context);
+
+        $this->isolator->set_time_limit($max_execution_time);
 
         $this->Storage->onForkInit();
 
+        $first_done = array();
         foreach ($jobs as $JobRow) {
             $Job = $this->initJob($JobRow, $Logger);
             if (!$Job) continue;
+
+            if (!in_array($JobRow->getClass(), $first_done, true)) {
+                $first_done[] = $JobRow->getClass();
+                $Job->firstTimeInFork();
+            }
 
             $result = $Job->run($Logger);
             $this->Storage->markStarted($JobRow);
@@ -218,6 +255,8 @@ class Manager
                     . ' #' . $JobRow->getId());
             }
         }
+
+        $this->isolator->exit(0);
     }
 
     /**

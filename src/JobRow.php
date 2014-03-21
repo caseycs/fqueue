@@ -15,14 +15,29 @@ class JobRow
         return $this->class;
     }
 
+    public function setClass($class)
+    {
+        $this->class = $class;
+    }
+
     public function getParams()
     {
         return $this->params;
     }
 
+    public function setParams(array $params)
+    {
+        $this->params = $params;
+    }
+
     public function getId()
     {
         return $this->id;
+    }
+
+    public function setId($id)
+    {
+        $this->id = $id;
     }
 }
 

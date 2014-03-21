@@ -1,0 +1,17 @@
+{
+    "name": "caseycs/fqueue",
+    "require": {
+        "psr/log": "1.0.0",
+        "icecave/isolator": "2.2.1"
+    },
+    "require-dev": {
+        "monolog/monolog": "1.7.*@dev",
+        "phpunit/phpunit": "3.7.*@dev",
+        "phake/phake": "2.0.x-dev"
+    },
+    "autoload": {
+        "psr-4": {
+            "FQueue\\": "src"
+        }
+    }
+}

@@ -3,7 +3,7 @@
 <phpunit bootstrap="test/bootstrap.php" colors="true">
     <testsuites>
         <testsuite name="FQueue Test Suite">
-            <directory>tests/suit/</directory>
+            <directory>./test/suit/</directory>
         </testsuite>
     </testsuites>
 </phpunit>

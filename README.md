@@ -57,7 +57,7 @@ and then all start from the beginnig.
 
  * Queue - this is how you split your tasks. The simples example - you can split your jobs between fast and slow queues, to avoid waiting slow task to be done to process the fast one. Each queue has few attributes: parallel process number, tasks per fork and im-memory jobs max size in manager process.
  * Job - every job is a class, which implements `FQueue\JobInterface`
- * Storage - this is a connection between jobs process manager and your storage - it can be mysql, mongo, redis or something else
+ * Storage - this is a connection between jobs process manager and your storage - it can be mysql, mongo, redis or something else. A class, which implements `FQueue\StorageInterface`
  * Manager - core of the system - `FQueue\Manager` class. You initialize it, execute and enjoy. It runs inifinite loop by himself, but I recommend to use [runit](http://smarden.org/runit/) or [supervisord](http://supervisord.org/) to keep it running for fail-safe.
 
 ## TODO

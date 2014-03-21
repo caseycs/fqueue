@@ -1,6 +1,16 @@
 # FQueue
 
-Forking queue on PHP
+Forking queue processor on PHP.
+
+Let's look in typical web project - for example e-commerce online shop. There are a lot of reasons,
+why you need queues: sending emails, sync orders with CRM&ERP, recalculate prices on markup rules change,
+add new positions on suppluer update, and so on.
+
+Some tasks are fast (send email), some tasks are slow (import price with few thounds positions).
+Some tasks can be processed in parallel (send order to CRM) and some - only one task evey time (recalculate prices).
+Some tasks require retry in fail (send email), and some not.
+
+You need a system to run all this kinds of jobs, make it configurable, make it simple. You got it!
 
 ## Usage example:
 
@@ -41,11 +51,19 @@ Output will be:
 Master process made 2 forks - with 1 job for every queue, every queue finished their job,
 and then all start from the beginnig.
 
-## TODO:
+## Concepts
+
+
+## TODO
+
+Important
+
  * fork tests
+ * workflow with retries
+ * correct sigterm workflow - wait for all forks done
  * configurable mysql storage from the box
- * configurable mongo storage from the box
- * CI
  * mark unfinished jobs as timeouted when kill fork by timeout
- * worflow with retries
- * correct sigterm flow - wait for all forks done
+
+Maybe sometimes
+
+ * configurable mongo storage from the box

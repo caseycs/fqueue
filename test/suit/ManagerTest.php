@@ -58,33 +58,12 @@ class ManagerTest extends \FQueue\FQueueTestCase
 
     public function test_job_timeout()
     {
-        $Storage = $this->getMock('FQueue\TestStorage');
-
         $Job = new FQueue\JobRow();
         $Job->setClass('FQueue\TestJobTimeout');
         $Job->setParams(array());
         $Job->setId(1);
 
-        $Storage
-            ->expects($this->at(1))
-            ->method('getJobs')
-            ->with($this->equalTo('test'), $this->equalTo(10))
-            ->will($this->returnValue(array($Job)));
-        $Storage
-            ->expects($this->at(2))
-            ->method('getJobs')
-            ->with($this->equalTo('test'), $this->equalTo(10))
-            ->will($this->returnValue(array()));
-        $Storage
-            ->expects($this->at(3))
-            ->method('getJobs')
-            ->with($this->equalTo('test'), $this->equalTo(10))
-            ->will($this->returnValue(array()));
-        $Storage
-            ->expects($this->at(4))
-            ->method('getJobs')
-            ->with($this->equalTo('test'), $this->equalTo(10))
-            ->will($this->returnValue(array()));
+        $Storage = new FQueue\TestStorage(array('test' => array($Job)));
 
         $Manager = new FQueue\Manager($this->getLogger(), $Storage);
         $Manager->addQueue('test', 1, 1, 10, $this->getLogger());

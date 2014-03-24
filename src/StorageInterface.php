@@ -9,5 +9,6 @@ interface StorageInterface
     function markSuccess(JobRow $JobRow);
     function markFail(JobRow $JobRow);
     function markError(JobRow $JobRow);
+    function markTimeoutIfInProgress(array $job_ids);
     function onForkInit();
 }

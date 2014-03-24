@@ -3,9 +3,16 @@ namespace FQueue;
 
 class TestStorage implements \FQueue\StorageInterface
 {
+    private $queue;
+
+    public function __construct(array $queue = array())
+    {
+        $this->queue = $queue;
+    }
+
     public function getJobs($queue, $limit)
     {
-        return array();
+        return array_splice($this->queue[$queue], 0, $limit);
     }
 
     public function cleanup($last_unixtime)
@@ -29,6 +36,11 @@ class TestStorage implements \FQueue\StorageInterface
     }
 
     public function markError(JobRow $JobRow)
+    {
+
+    }
+
+    public function markTimeoutIfInProgress(array $ids)
     {
 
     }

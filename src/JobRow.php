@@ -6,6 +6,7 @@ class JobRow
     const RESULT_SUCCESS = 1;
     const RESULT_FAIL = 2;
     const RESULT_ERROR = 3;
+    const RESULT_TIMEOUT = 4;
 
     private $class, $id;
     private $params = array();

@@ -184,6 +184,7 @@ class Manager
                     'pid' => $pid,
                     'time_start' => time(),
                     'time_kill_timeout' => time() + $max_execution_time,
+                    'job_ids' => array_map(array($this, 'extractJobId'), $jobs2fork),
                 );
             } else {
                 // we are fork
@@ -191,6 +192,11 @@ class Manager
                 $Fork->runAndDie();
             }
         }
+    }
+
+    private function extractJobId(JobRow $JobRow)
+    {
+        return $JobRow->getId();
     }
 
     private function actualizeForks()
@@ -210,6 +216,9 @@ class Manager
                         $kill_result = $this->isolator->posix_kill($pid_info['pid'], SIGTERM);
                         $this->Logger->error("{$queue}: FORK {$pid_info['pid']} timeout, kill result: "
                             . var_export($kill_result, true));
+
+                        $this->Storage->markTimeoutIfInProgress($pid_info['job_ids']);
+
                         unset($this->forks_queue_pids[$queue][$index]);
                     }
                 } else {

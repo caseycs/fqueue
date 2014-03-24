@@ -24,6 +24,7 @@ class Storage implements FQueue\StorageInterface
     function markSuccess(FQueue\JobRow $JobRow){}
     function markFail(FQueue\JobRow $JobRow){}
     function markError(FQueue\JobRow $JobRow){}
+    function markTimeoutIfInProgress(array $ids){}
     function onForkInit(){}
 }
 

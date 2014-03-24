@@ -23,6 +23,7 @@ class Storage implements FQueue\StorageInterface
     function markStarted(FQueue\JobRow $JobRow){}
     function markSuccess(FQueue\JobRow $JobRow){}
     function markFail(FQueue\JobRow $JobRow){}
+    function markError(FQueue\JobRow $JobRow){}
     function onForkInit(){}
 }
 
@@ -36,5 +37,8 @@ $Manager->addQueue('queue1', 1, 1, 10, $LoggerQueue1);
 
 $LoggerQueue2 = new Monolog\Logger('queue2');
 $Manager->addQueue('queue2', 1, 1, 10, $LoggerQueue2);
+
+$LoggerQueue2 = new Monolog\Logger('queue3');
+$Manager->addQueue('queue3', 1, 1, 10, $LoggerQueue2);
 
 $Manager->start();

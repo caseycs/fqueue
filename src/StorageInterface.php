@@ -8,5 +8,6 @@ interface StorageInterface
     function markStarted(JobRow $JobRow);
     function markSuccess(JobRow $JobRow);
     function markFail(JobRow $JobRow);
+    function markError(JobRow $JobRow);
     function onForkInit();
 }

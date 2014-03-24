@@ -15,6 +15,8 @@ class Manager
 
     private $cycle_usleep = 1000000; // 1 second
 
+    private $fork_max_execution_time_init = 2; // 2 seconds + execution time for each fork
+
     // насколько старые записи из таблиц очередей можно удалять
     private $cleanup_seconds;
 
@@ -77,6 +79,11 @@ class Manager
         $this->cleanup_every_cycles = $cleanup_every_cycles;
     }
 
+    public function forkMaxExecutionTimeInit($fork_max_execution_time_init)
+    {
+        $this->fork_max_execution_time_init = $fork_max_execution_time_init;
+    }
+
     public function start()
     {
         if ($this->queues === array()) throw new \InvalidArgumentException;
@@ -104,7 +111,7 @@ class Manager
 
     private function cycle()
     {
-        $this->Logger->debug('cycle start');
+        $this->Logger->debug('cycle start ' . $this->cycles_done);
 
         // stats
         $stats = '';
@@ -125,7 +132,7 @@ class Manager
                 $jobs_new = $this->Storage->getJobs($queue, $limit);
                 $this->jobs_queue[$queue] = array_merge($this->jobs_queue[$queue], $jobs_new);
                 $this->Logger->debug("{$queue}: fetched jobs: " . count($jobs_new)
-                    . " total in-memory jobs: " . count($this->jobs_queue[$queue]));
+                    . ", total in-memory jobs: " . count($this->jobs_queue[$queue]));
             } else {
                 $this->Logger->debug("{$queue}: in-memory jobs limit reached: "
                     . $queue_params['manager_queue']);
@@ -144,9 +151,9 @@ class Manager
 
             // calculate max_execution_time
             /* @var JobRow $JobRow */
-            $max_execution_time = 0;
+            $max_execution_time = $this->fork_max_execution_time_init; // second initial for system service needs
             foreach ($jobs2fork as $index => $JobRow) {
-                $Job = $this->initJob($JobRow, $this->Logger);
+                $Job = Helper::initJob($JobRow, $this->Logger);
                 if (!$Job) {
                     unset($jobs2fork[$index]);
                     continue;
@@ -179,25 +186,27 @@ class Manager
                     'time_kill_timeout' => time() + $max_execution_time,
                 );
             } else {
-                // fork
-                $this->processFork($queue, $jobs2fork, $max_execution_time, $queue_params['logger']);
+                // we are fork
+                $Fork = new Fork($this->Storage, $queue_params['logger'], $this->isolator, $queue, $jobs2fork, $max_execution_time);
+                $Fork->runAndDie();
             }
         }
-
-        // defunc zombie processes - feel free!
-        $status = null;
-        $this->isolator->pcntl_wait($status, WNOHANG || WUNTRACED);
     }
 
     private function actualizeForks()
     {
-        //remove dead forks
+        // defunc zombie processes - feel free!
+        $status = null;
+        while (pcntl_wait($status, WNOHANG || WUNTRACED) > 0) usleep(5000);
+
+        //remove dead forks from array
         foreach ($this->forks_queue_pids as $queue => $pids) {
             foreach ($pids as $index => $pid_info) {
                 if ($this->isolator->posix_kill($pid_info['pid'], SIG_DFL)) {
-                    $this->Logger->debug("{$queue}: FORK {$pid_info['pid']} alive");
                     //check timeout
-                    if (time() >= $pid_info['time_kill_timeout']) {
+                    if (time() <= $pid_info['time_kill_timeout']) {
+                        $this->Logger->debug("{$queue}: FORK {$pid_info['pid']} alive");
+                    } else {
                         $kill_result = $this->isolator->posix_kill($pid_info['pid'], SIGTERM);
                         $this->Logger->error("{$queue}: FORK {$pid_info['pid']} timeout, kill result: "
                             . var_export($kill_result, true));
@@ -211,73 +220,5 @@ class Manager
             // reindex array
             $this->forks_queue_pids[$queue] = array_values($this->forks_queue_pids[$queue]);
         }
-    }
-
-    /**
-     * @param $queue
-     * @param JobRow[] $jobs
-     * @param \Psr\Log\LoggerInterface $Logger
-     */
-    private function processFork($queue, array $jobs, $max_execution_time, \Psr\Log\LoggerInterface $Logger)
-    {
-        $sid = $this->isolator->posix_setsid();
-        if ($sid < 0) {
-            $this->Logger->emergency("{$queue}: FORK posix_setsid failed");
-            $this->isolator->exit(0);
-        }
-
-        $context = array(
-            'queue' => $queue,
-            'pid' => getmypid(),
-            'jobs' => count($jobs),
-            'max_execution_time' => $max_execution_time,
-        );
-        $Logger->info("FORK", $context);
-
-        $this->isolator->set_time_limit($max_execution_time);
-
-        $this->Storage->onForkInit();
-
-        $first_done = array();
-        foreach ($jobs as $JobRow) {
-            $Job = $this->initJob($JobRow, $Logger);
-            if (!$Job) continue;
-
-            if (!in_array($JobRow->getClass(), $first_done, true)) {
-                $first_done[] = $JobRow->getClass();
-                $Job->firstTimeInFork();
-            }
-
-            $result = $Job->run($Logger);
-            $this->Storage->markStarted($JobRow);
-
-            if ($result === JobRow::RESULT_SUCCESS) {
-                $this->Storage->markSuccess($JobRow);
-            } elseif ($result === JobRow::RESULT_FAIL) {
-                $this->Storage->markFail($JobRow);
-            } else {
-                $Logger->error('invalid run result - ' . var_export($result, true)
-                    . ' - ' . $JobRow->getClass()
-                    . ' #' . $JobRow->getId());
-            }
-        }
-
-        $this->isolator->exit(0);
-    }
-
-    /**
-     * @return JobInterface
-     */
-    private function initJob(JobRow $JobRow, \Psr\Log\LoggerInterface $Logger)
-    {
-        if (!class_exists($JobRow->getClass())) {
-            $Logger->emergency('job class not found:' . $JobRow->getClass());
-            return false;
-        }
-        /* @var JobInterface $Job */
-        $class = $JobRow->getClass();
-        $Job = new $class;
-        $Job->init($JobRow->getParams());
-        return $Job;
     }
 }

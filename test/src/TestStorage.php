@@ -27,6 +27,12 @@ class TestStorage implements \FQueue\StorageInterface
     {
 
     }
+
+    public function markError(JobRow $JobRow)
+    {
+
+    }
+
     public function onForkInit()
     {
 

@@ -18,6 +18,6 @@ class TestJobTimeout implements \FQueue\JobInterface
 
     public function getMaxExecutionTime()
     {
-        return 1;
+        return 0;
     }
 }

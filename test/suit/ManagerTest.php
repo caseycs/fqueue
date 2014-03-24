@@ -17,7 +17,7 @@ class ManagerTest extends \FQueue\FQueueTestCase
             ->will($this->returnValue(array($Job)));
 
         $Isolator = $this->getMock('Icecave\Isolator\Isolator', array('pcntl_wait', 'pcntl_fork'));
-        $Isolator->expects($this->once())->method('pcntl_wait');
+        $Isolator->expects($this->any())->method('pcntl_wait');
         $Isolator->expects($this->never())->method('pcntl_fork');
 
         $Manager = new FQueue\Manager($this->getLogger(), $Storage, $Isolator);
@@ -45,7 +45,7 @@ class ManagerTest extends \FQueue\FQueueTestCase
 
         $Isolator = $this->getMock('Icecave\Isolator\Isolator', array('pcntl_wait', 'pcntl_fork', 'posix_kill'));
         $Isolator
-            ->expects($this->once())
+            ->expects($this->any())
             ->method('pcntl_wait')
             ->with($this->anything(), WNOHANG || WUNTRACED);
         $Isolator->expects($this->once())->method('pcntl_fork')->will($this->returnValue($pid));
@@ -90,6 +90,7 @@ class ManagerTest extends \FQueue\FQueueTestCase
         $Manager->addQueue('test', 1, 1, 10, $this->getLogger());
         $Manager->cyclesUsleep(1000000);
         $Manager->cyclesLimit(4);
+        $Manager->forkMaxExecutionTimeInit(0);
         $Manager->start();
 
         // check that fork is dead

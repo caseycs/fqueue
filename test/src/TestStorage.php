@@ -3,7 +3,11 @@ namespace FQueue;
 
 class TestStorage implements \FQueue\StorageInterface
 {
-    private $queue;
+    public $queue;
+
+    public $cnt_mark_timeout = 0;
+
+    public $timeout_ids = array();
 
     public function __construct(array $queue = array())
     {
@@ -42,11 +46,11 @@ class TestStorage implements \FQueue\StorageInterface
 
     public function markTimeoutIfInProgress(array $ids)
     {
-
+        $this->cnt_mark_timeout ++;
+        $this->timeout_ids = array_merge($this->timeout_ids, $ids);
     }
 
     public function onForkInit()
     {
-
     }
 }

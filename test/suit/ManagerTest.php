@@ -61,7 +61,7 @@ class ManagerTest extends \FQueue\FQueueTestCase
         $Job = new FQueue\JobRow();
         $Job->setClass('FQueue\TestJobTimeout');
         $Job->setParams(array());
-        $Job->setId(1);
+        $Job->setId(111);
 
         $Storage = new FQueue\TestStorage(array('test' => array($Job)));
 
@@ -82,6 +82,9 @@ class ManagerTest extends \FQueue\FQueueTestCase
 
         $this->assertTrue(isset($pid));
         $this->assertFalse(posix_kill($pid, SIG_DFL));
+
+        $this->assertSame(1, $Storage->cnt_mark_timeout);
+        $this->assertSame(array(111), $Storage->timeout_ids);
     }
 
     public function test_job_no_timeout()

@@ -95,7 +95,7 @@ class Manager
     {
         if ($this->queues === array()) throw new \InvalidArgumentException;
 
-        $this->checkForksStateFile();
+        $this->forksStateFileInit();
 
         while (true) {
             $this->cleanup();
@@ -240,7 +240,7 @@ class Manager
         $this->saveForksState();
     }
 
-    private function checkForksStateFile()
+    private function forksStateFileInit()
     {
         if ($this->forks_state_file === null) return;
 
@@ -254,6 +254,19 @@ class Manager
 
         if (!is_readable($check)) throw new \InvalidArgumentException('file not readable');
         if (!is_writable($check)) throw new \InvalidArgumentException('file not writeable');
+
+        if (is_file($this->forks_state_file)) {
+            $json = file_get_contents($this->forks_state_file);
+            if (!$json) {
+                $this->Logger->error('file_get_contents failed ' . $this->forks_state_file);
+            }
+            $json = json_decode($json, true);
+            if (!is_array($json)) {
+                $this->Logger->error('json invalid');
+            }
+            $this->forks_queue_pids = $json;
+            $this->Logger->debug('pids state loaded from file');
+        }
     }
 
     private function saveForksState()

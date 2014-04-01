@@ -17,7 +17,7 @@ class Job implements FQueue\JobInterface
 class Storage implements FQueue\StorageInterface
 {
     public function getJobs($queue, $limit){
-        return array(new FQueue\JobRow('Job'));
+        return array(new FQueue\JobRow('Job', array(), (int)rand(1,999)));
     }
     function cleanup($last_unixtime){}
     function markStarted(FQueue\JobRow $JobRow){}
@@ -31,7 +31,7 @@ class Storage implements FQueue\StorageInterface
 $LoggerManager = new Monolog\Logger('manager');
 $Storage = new Storage;
 
-$Manager = new FQueue\Manager($LoggerManager, $Storage);
+$Manager = new FQueue\Manager($LoggerManager, $Storage, 'demo_forks_stage.json');
 
 $LoggerQueue1 = new Monolog\Logger('queue1');
 $Manager->addQueue('queue1', 1, 1, 10, $LoggerQueue1);

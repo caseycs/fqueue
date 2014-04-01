@@ -34,11 +34,18 @@ class Manager
 
     private $cycles_done = 0;
 
-    public function __construct(\Psr\Log\LoggerInterface $Logger, StorageInterface $Storage, Isolator $isolator = null)
+    private $forks_state_file = null;
+
+    public function __construct(
+        \Psr\Log\LoggerInterface $Logger,
+        StorageInterface $Storage,
+        $forks_state_file = null,
+        Isolator $isolator = null)
     {
         $this->Logger = $Logger;
         $this->Storage = $Storage;
         $this->isolator = Isolator::get($isolator);
+        $this->forks_state_file = $forks_state_file;
 
         $this->cleanup_seconds = 60 * 60 * 24 * 2;
     }
@@ -88,7 +95,7 @@ class Manager
     {
         if ($this->queues === array()) throw new \InvalidArgumentException;
 
-        // setup tick hander
+        $this->checkForksStateFile();
 
         while (true) {
             $this->cleanup();
@@ -186,6 +193,7 @@ class Manager
                     'time_kill_timeout' => time() + $max_execution_time,
                     'job_ids' => array_map(array($this, 'extractJobId'), $jobs2fork),
                 );
+                $this->saveForksState();
             } else {
                 // we are fork
                 $Fork = new Fork($this->Storage, $queue_params['logger'], $this->isolator, $queue, $jobs2fork, $max_execution_time);
@@ -229,5 +237,29 @@ class Manager
             // reindex array
             $this->forks_queue_pids[$queue] = array_values($this->forks_queue_pids[$queue]);
         }
+        $this->saveForksState();
+    }
+
+    private function checkForksStateFile()
+    {
+        if ($this->forks_state_file === null) return;
+
+        if (is_dir($this->forks_state_file)) throw new \InvalidArgumentException('directory');
+
+        if (is_file($this->forks_state_file)) {
+            $check = $this->forks_state_file;
+        } else {
+            $check = dirname($this->forks_state_file);
+        }
+
+        if (!is_readable($check)) throw new \InvalidArgumentException('file not readable');
+        if (!is_writable($check)) throw new \InvalidArgumentException('file not writeable');
+    }
+
+    private function saveForksState()
+    {
+        if ($this->forks_state_file === null) return;
+
+        file_put_contents($this->forks_state_file, json_encode($this->forks_queue_pids));
     }
 }

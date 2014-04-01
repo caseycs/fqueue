@@ -71,10 +71,8 @@ A bit more detailed examples.
 Important
 
  * fork tests
- * workflow with retries
- * correct sigterm workflow - wait for all forks done
+ * correct restart workflow - save/restore current pids to file
  * configurable mysql storage from the box
- * mark unfinished jobs as timeouted when kill fork by timeout
 
 Maybe sometime
 

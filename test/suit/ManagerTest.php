@@ -20,7 +20,7 @@ class ManagerTest extends \FQueue\FQueueTestCase
         $Isolator->expects($this->any())->method('pcntl_wait');
         $Isolator->expects($this->never())->method('pcntl_fork');
 
-        $Manager = new FQueue\Manager($this->getLogger(), $Storage, $Isolator);
+        $Manager = new FQueue\Manager($this->getLogger(), $Storage, null, $Isolator);
         $Manager->addQueue('test', 1, 1, 10, $this->getLogger());
         $Manager->cyclesLimit(1);
         $Manager->start();
@@ -50,7 +50,7 @@ class ManagerTest extends \FQueue\FQueueTestCase
             ->with($this->anything(), WNOHANG || WUNTRACED);
         $Isolator->expects($this->once())->method('pcntl_fork')->will($this->returnValue($pid));
 
-        $Manager = new FQueue\Manager($this->getLogger(), $Storage, $Isolator);
+        $Manager = new FQueue\Manager($this->getLogger(), $Storage, null, $Isolator);
         $Manager->addQueue('test', 1, 1, 10, $this->getLogger());
         $Manager->cyclesLimit(1);
         $Manager->start();

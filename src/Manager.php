@@ -57,13 +57,14 @@ class Manager
         $in_memory_queue_size = 10,
         \Psr\Log\LoggerInterface $Logger = null)
     {
-        assert(!isset($this->queues[$queue]));
+        if (isset($this->queues[$queue])) throw new \InvalidArgumentException('queue already exists');
         $this->queues[$queue] = array(
             'forks' => $forks,
             'tasks_per_fork' => $tasks_per_fork,
             'manager_queue' => $in_memory_queue_size,
             'logger' => $Logger ? $Logger : $this->Logger,
         );
+        $this->jobs_queue[$queue] = array();
     }
 
     public function cyclesLimit($cycles_limit)
@@ -113,14 +114,14 @@ class Manager
         if ($this->cycles_done !== 0 && $this->cycles_done % $this->cleanup_every_cycles !== 0) return;
 
         $jobs_deleted = $this->Storage->cleanup(time() - $this->cleanup_seconds);
-        $this->Logger->info('cleanup done, jobs deleted: ' . $jobs_deleted);
+        $this->Logger->info('storage cleanup done, jobs deleted: ' . $jobs_deleted);
     }
 
     private function cycle()
     {
         $this->Logger->debug('cycle start ' . $this->cycles_done);
 
-        // stats
+        // output debug stats
         $stats = '';
         foreach ($this->jobs_queue as $queue => $items) {
             $stats .= "$queue: " . count($items) . ' ';
@@ -131,34 +132,14 @@ class Manager
 
         // start new forks
         foreach ($this->queues as $queue => $queue_params) {
-            if (!isset($this->jobs_queue[$queue])) $this->jobs_queue[$queue] = array();
-
-            // fetch queue
-            if (count($this->jobs_queue[$queue]) < $queue_params['manager_queue']) {
-                $limit = $queue_params['manager_queue'] - count($this->jobs_queue[$queue]);
-                $jobs_new = $this->Storage->getJobs($queue, $limit);
-                $this->jobs_queue[$queue] = array_merge($this->jobs_queue[$queue], $jobs_new);
-                $this->Logger->debug("{$queue}: fetched jobs: " . count($jobs_new)
-                    . ", total in-memory jobs: " . count($this->jobs_queue[$queue]));
-            } else {
-                $this->Logger->debug("{$queue}: in-memory jobs limit reached: "
-                    . $queue_params['manager_queue']);
-            }
-
-            if ($this->jobs_queue[$queue] === array()) continue;
-
-            // check if fork is avaliable
-            if (isset($this->forks_queue_pids[$queue]) && count($this->forks_queue_pids[$queue]) >= $this->queues[$queue]['forks']) {
-                $this->Logger->debug("{$queue}: forks limit reached");
-                continue;
-            }
+            $this->fetchQueue($queue, $queue_params);
 
             // cut queue part
             $jobs2fork = array_splice($this->jobs_queue[$queue], 0, $this->queues[$queue]['tasks_per_fork']);
 
             // calculate max_execution_time
             /* @var JobRow $JobRow */
-            $max_execution_time = $this->fork_max_execution_time_init; // second initial for system service needs
+            $max_execution_time = $this->fork_max_execution_time_init; // seconds initial for system service needs
             foreach ($jobs2fork as $index => $JobRow) {
                 $Job = Helper::initJob($JobRow, $this->Logger);
                 if (!$Job) {
@@ -168,8 +149,14 @@ class Manager
                 $max_execution_time += $Job->getMaxExecutionTime();
             }
 
-            if ($jobs2fork === array()) {
-                $this->Logger->debug("{$queue}: no jobs left, skip cycle");
+            if (empty($jobs2fork)) {
+                $this->Logger->debug("{$queue}: no jobs in queue");
+                continue;
+            }
+
+            // check if one more fork is avaliable
+            if (isset($this->forks_queue_pids[$queue]) && count($this->forks_queue_pids[$queue]) >= $this->queues[$queue]['forks']) {
+                $this->Logger->debug("{$queue}: forks limit reached");
                 continue;
             }
 
@@ -274,5 +261,19 @@ class Manager
         if ($this->forks_state_file === null) return;
 
         file_put_contents($this->forks_state_file, json_encode($this->forks_queue_pids));
+    }
+
+    private function fetchQueue($queue, array $queue_params)
+    {
+        if (count($this->jobs_queue[$queue]) < $queue_params['manager_queue']) {
+            $limit = $queue_params['manager_queue'] - count($this->jobs_queue[$queue]);
+            $jobs_new = $this->Storage->getJobs($queue, $limit);
+            $this->jobs_queue[$queue] = array_merge($this->jobs_queue[$queue], $jobs_new);
+            $this->Logger->debug("{$queue}: fetched jobs: " . count($jobs_new)
+                . ", total in-memory jobs: " . count($this->jobs_queue[$queue]));
+        } else {
+            $this->Logger->debug("{$queue}: in-memory jobs limit reached: "
+                . $queue_params['manager_queue']);
+        }
     }
 }

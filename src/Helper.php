@@ -17,7 +17,10 @@ class Helper
         /* @var JobInterface $Job */
         $class = $JobRow->getClass();
         $Job = new $class;
-        $Job->init($JobRow->getParams());
+        if (!$Job->init($JobRow->getParams())) {
+            $Logger->emergency('job init fail:' . $JobRow->getClass() . ' ', $JobRow->getParams());
+            return false;
+        }
         return $Job;
     }
 }

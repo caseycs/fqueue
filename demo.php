@@ -4,7 +4,7 @@ require 'vendor/autoload.php';
 class Job implements FQueue\JobInterface
 {
     public function firstTimeInFork() {}
-    public function init(array $args) {}
+    public function init(array $args) {return true;}
     public function run(\Psr\Log\LoggerInterface $Logger) {
         $Logger->info('Job success!');
         return FQueue\JobRow::RESULT_SUCCESS;
@@ -19,7 +19,7 @@ class Storage implements FQueue\StorageInterface
     public function getJobs($queue, $limit){
         return array(new FQueue\JobRow('Job', array(), (int)rand(1,999)));
     }
-    function cleanup($last_unixtime){}
+    function cleanup($last_unixtime){return 0;}
     function markStarted(FQueue\JobRow $JobRow){}
     function markSuccess(FQueue\JobRow $JobRow){}
     function markFail(FQueue\JobRow $JobRow){}

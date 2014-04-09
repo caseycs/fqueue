@@ -9,6 +9,7 @@ class TestJobNoTimeout implements \FQueue\JobInterface
 
     public function init(array $args)
     {
+        return true;
     }
 
     public function run(\Psr\Log\LoggerInterface $Logger)

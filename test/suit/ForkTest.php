@@ -26,4 +26,19 @@ class ForkTest extends \FQueue\FQueueTestCase
         );
         $Storage->runAndDie();
     }
+
+    public function test_job_fail()
+    {
+        $this->markTestIncomplete();
+    }
+
+    public function test_job_invalid_result()
+    {
+        $this->markTestIncomplete();
+    }
+
+    public function test_time_limit()
+    {
+        $this->markTestIncomplete();
+    }
 }

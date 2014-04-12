@@ -40,24 +40,29 @@ See full source code in [demo.php](demo.php)
 Output will be:
 
 ```
-[2014-03-22 02:31:30] manager.INFO: cleanup done, jobs deleted:  [] []
-[2014-03-22 02:31:30] manager.DEBUG: cycle start [] []
-[2014-03-22 02:31:30] manager.DEBUG: in-memory queue jobs:  [] []
-[2014-03-22 02:31:30] manager.DEBUG: queue1: fetched jobs: 1 total in-memory jobs: 1 [] []
-[2014-03-22 02:31:30] manager.INFO: making new fork {"queue":"queue1","pid":41544,"jobs":1,"max_execution_time":1} []
-[2014-03-22 02:31:30] manager.DEBUG: queue2: fetched jobs: 1 total in-memory jobs: 1 [] []
-[2014-03-22 02:31:30] manager.INFO: making new fork {"queue":"queue2","pid":41545,"jobs":1,"max_execution_time":1} []
-[2014-03-22 02:31:30] queue1.INFO: FORK {"queue":"queue1","pid":41544,"jobs":1,"max_execution_time":1} []
-[2014-03-22 02:31:30] queue1.INFO: Job success! [] []
-[2014-03-22 02:31:30] queue2.INFO: FORK {"queue":"queue2","pid":41545,"jobs":1,"max_execution_time":1} []
-[2014-03-22 02:31:30] queue2.INFO: Job success! [] []
+[2014-04-13 02:01:03] manager.INFO: storage cleanup done, jobs deleted: 0 [] []
+[2014-04-13 02:01:03] manager.DEBUG: cycle start 0 [] []
+[2014-04-13 02:01:03] manager.DEBUG: in-memory queue jobs: queue1: 0 queue2: 0 queue3: 0  [] []
+[2014-04-13 02:01:03] manager.DEBUG: queue1: fetched jobs: 1, total in-memory jobs: 1 [] []
+[2014-04-13 02:01:03] manager.INFO: making new fork {"queue":"queue1","pid":43136,"jobs":1,"max_execution_time":3} []
+[2014-04-13 02:01:03] manager.DEBUG: queue2: fetched jobs: 1, total in-memory jobs: 1 [] []
+[2014-04-13 02:01:03] manager.INFO: making new fork {"queue":"queue2","pid":43137,"jobs":1,"max_execution_time":3} []
+[2014-04-13 02:01:03] queue1.INFO: for init {"queue":"queue1","pid":43136,"jobs":1,"max_execution_time":3} []
+[2014-04-13 02:01:03] queue1.INFO: Job success! [] []
+[2014-04-13 02:01:03] queue1.INFO: success {"class":"Job","id":646} []
+[2014-04-13 02:01:03] queue2.INFO: for init {"queue":"queue2","pid":43137,"jobs":1,"max_execution_time":3} []
+[2014-04-13 02:01:03] queue2.INFO: Job success! [] []
+[2014-04-13 02:01:03] queue2.INFO: success {"class":"Job","id":446} []
+[2014-04-13 02:01:03] manager.DEBUG: queue3: fetched jobs: 1, total in-memory jobs: 1 [] []
+[2014-04-13 02:01:03] manager.INFO: making new fork {"queue":"queue3","pid":43138,"jobs":1,"max_execution_time":3} []
+[2014-04-13 02:01:03] queue3.INFO: for init {"queue":"queue3","pid":43138,"jobs":1,"max_execution_time":3} []
+[2014-04-13 02:01:03] queue3.INFO: Job success! [] []
+[2014-04-13 02:01:03] queue3.INFO: success {"class":"Job","id":543} []
 ...
 ```
 
-Master process made 2 forks - with 1 job for every queue, every queue finished their job,
+Master process made 3 forks - with 1 job for every queue, every queue finished their job,
 and then all start from the beginnig.
-
-A bit more detailed examples.
 
 ## Concepts
 
@@ -71,7 +76,6 @@ A bit more detailed examples.
 Important
 
  * fork tests
- * correct restart workflow - save/restore current pids to file
  * configurable mysql storage from the box
 
 Maybe sometime

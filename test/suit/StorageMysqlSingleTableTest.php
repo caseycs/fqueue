@@ -136,6 +136,10 @@ class StorageMysqlSingleTableTest extends \PHPUnit_Framework_TestCase
         $StorageMysqlSingleTable->markInProgress($jobs[0]);
         $StorageMysqlSingleTable->markFailTemporary($jobs[0]);
 
+        sleep(\FQueue\TestJobFailTemporary::RETRY_TIMEOUT);
+
+        $this->assertCount(0, $StorageMysqlSingleTable->getJobs('queue2', array(), 1));
+
         $this->assertSame(1, $StorageMysqlSingleTable->cleanup(time()));
     }
 

@@ -11,6 +11,7 @@ class Job implements FQueue\JobInterface
     }
     public function getMaxExecutionTime() {return 1;}
     public static function getRetries() {return 1;}
+    public static function getRetryTimeout() {return 1;}
 }
 
 class Storage implements FQueue\StorageInterface

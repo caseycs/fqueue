@@ -62,7 +62,7 @@ Output will be:
 ```
 
 Master process made 3 forks - with 1 job for every queue, every queue finished their job,
-and then all start from the beginnig.
+and then all start from the beginning.
 
 ## Concepts
 

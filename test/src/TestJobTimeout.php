@@ -27,7 +27,7 @@ class TestJobTimeout implements \FQueue\JobInterface
         return 1;
     }
 
-    public static function getRetriesTimeout()
+    public static function getRetryTimeout()
     {
         return 1;
     }

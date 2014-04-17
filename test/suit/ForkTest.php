@@ -37,7 +37,6 @@ class ForkTest extends \FQueue\FQueueTestCase
         $Storage->expects($this->exactly(1))->method('markFailTemporary');
 
         $JobRow = new FQueue\JobRow('FQueue\TestJobFailTemporary');
-        $JobRow->setRetriesRemaining(2);
 
         $jobs = array(
             $JobRow,

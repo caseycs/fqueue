@@ -11,7 +11,7 @@ class JobRow
     const STATUS_ERROR = 'error';
     const STATUS_TIMEOUT = 'timeout';
 
-    private $class, $id, $retries_remaining;
+    private $class, $id;
     private $params = array();
 
     public function __construct($class = null, array $params = array(), $id = null)
@@ -49,16 +49,6 @@ class JobRow
     public function setId($id)
     {
         $this->id = $id;
-    }
-
-    public function getRetriesRemaining()
-    {
-        return $this->retries_remaining;
-    }
-
-    public function setRetriesRemaining($retries_remaining)
-    {
-        $this->retries_remaining = $retries_remaining;
     }
 }
 

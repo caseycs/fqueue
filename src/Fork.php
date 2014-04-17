@@ -77,7 +77,6 @@ class Fork
             if (!$Job) continue;
 
             $this->Storage->markInProgress($JobRow);
-            $JobRow->setRetriesRemaining($JobRow->getRetriesRemaining() - 1);
             $result = $Job->run($this->Logger);
 
             $context = array('class' => $JobRow->getClass(), 'id' => $JobRow->getId());

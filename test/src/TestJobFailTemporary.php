@@ -3,6 +3,8 @@ namespace FQueue;
 
 class TestJobFailTemporary implements \FQueue\JobInterface
 {
+    const RETRY_TIMEOUT = 2;
+
     public function __construct($container)
     {
     }
@@ -27,8 +29,8 @@ class TestJobFailTemporary implements \FQueue\JobInterface
         return 2;
     }
 
-    public static function getRetriesTimeout()
+    public static function getRetryTimeout()
     {
-        return 2;
+        return self::RETRY_TIMEOUT;
     }
 }

@@ -27,7 +27,7 @@ class TestJobFailPermanent implements \FQueue\JobInterface
         return 2;
     }
 
-    public static function getRetriesTimeout()
+    public static function getRetryTimeout()
     {
         return 2;
     }

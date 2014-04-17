@@ -9,5 +9,5 @@ interface JobInterface
     function run(\Psr\Log\LoggerInterface $Logger);
     function getMaxExecutionTime();
     static function getRetries();
-    static function getRetriesTimeout();
+    static function getRetryTimeout();
 }

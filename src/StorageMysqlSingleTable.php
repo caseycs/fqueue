@@ -4,7 +4,7 @@ namespace FQueue;
 // see CREATE TABLE in storage_single_table.sql
 class StorageMysqlSingleTable implements StorageInterface
 {
-    private $host, $port, $user, $pass, $database_table;
+    private $host, $port, $user, $pass, $database, $table;
 
     /**
      * @var \PDO
@@ -13,7 +13,8 @@ class StorageMysqlSingleTable implements StorageInterface
 
     public function __construct($database, $table)
     {
-        $this->database_table = ($database ? $database . '.' : '') . $table;
+        $this->database = $database;
+        $this->table = $table;
     }
 
     public function setPDO(\PDO $pdo)
@@ -33,17 +34,24 @@ class StorageMysqlSingleTable implements StorageInterface
     {
         $this->init();
 
-        $sth = $this->pdo->prepare("INSERT INTO {$this->database_table}
-            (queue, class, status, params, retries_remaining, create_time, retry_time)
-            VALUES (?, ?, ?, ?, ?, ?, ?)");
+        $sth = $this->pdo->prepare("INSERT INTO {$this->database}.{$this->table}
+            SET
+              queue = ?,
+              class = ?,
+              status = ?,
+              params = ?,
+              retries_remaining = ?,
+              retry_timeout = ?,
+              create_time = NOW(),
+              next_retry_time = NOW()");
+
         $params = array(
             $queue,
             $class,
             JobRow::STATUS_NEW,
             json_encode($init_params),
             $class::getRetries(),
-            date('Y-m-d H:i:s'),
-            date('Y-m-d H:i:s'),
+            $class::getRetryTimeout(),
         );
         $sth->execute($params);
         return (int)$this->pdo->lastInsertId();
@@ -54,32 +62,35 @@ class StorageMysqlSingleTable implements StorageInterface
         $this->init();
 
         $queue = $this->pdo->quote($queue);
-        $statuses = $this->pdo->quote(JobRow::STATUS_NEW)
-            . ',' . $this->pdo->quote(JobRow::STATUS_FAIL_TEMPORARY)
-            . ',' . $this->pdo->quote(JobRow::STATUS_TIMEOUT);
         if (empty($exclude_ids)) {
             $exclude_ids = '';
         } else {
             $exclude_ids = 'AND id NOT IN (' . join(',', $exclude_ids) . ')';
         }
 
-        $sth = $this->pdo->query("SELECT * FROM {$this->database_table}
+        $sth = $this->pdo->query("SELECT * FROM {$this->database}.{$this->table}
             WHERE
               queue = {$queue}
               AND retries_remaining > 0
-              AND status IN({$statuses})
+              AND next_retry_time <= NOW()
               {$exclude_ids}
-            ORDER BY start_time ASC
+            ORDER BY next_retry_time ASC
             LIMIT {$limit}");
 
         $result = array();
 
         while ($row = $sth->fetch(\PDO::FETCH_ASSOC)) {
+            $statuses_valid = array(
+                JobRow::STATUS_NEW,
+                JobRow::STATUS_FAIL_TEMPORARY,
+                JobRow::STATUS_TIMEOUT,
+            );
+            assert(in_array($row['status'], $statuses_valid, true));
+
             $JobRow = new JobRow;
             $JobRow->setId((int)$row['id']);
             $JobRow->setClass($row['class']);
             $JobRow->setParams(json_decode($row['params'], true));
-            $JobRow->setRetriesRemaining((int)$row['retries_remaining']);
             $result[] = $JobRow;
         }
 
@@ -90,18 +101,20 @@ class StorageMysqlSingleTable implements StorageInterface
     {
         $this->init();
 
-        $finish_time = strtotime('Y-m-d H:i:s', $last_unixtime);
-        $statuses = $this->pdo->quote(JobRow::STATUS_FAIL_PERMANENT)
-            . ',' . $this->pdo->quote(JobRow::STATUS_ERROR);
+        $finish_time = date('Y-m-d H:i:s', $last_unixtime);
 
-        $sth = $this->pdo->prepare("DELETE FROM {$this->database_table}
-            WHERE finish_time < ? AND (status IN {$statuses}");
-        $count = $sth->execute(array($statuses, $finish_time));
-        return $count;
+        $sth = $this->pdo->prepare("DELETE FROM {$this->database}.{$this->table}
+            WHERE
+              finish_time <= ?
+              AND retries_remaining = 0");
+        $sth->execute(array($finish_time));
+
+        return $sth->rowCount();
     }
 
     public function beforeFork()
     {
+        //disconnect from db
         $this->pdo = null;
     }
 
@@ -109,8 +122,12 @@ class StorageMysqlSingleTable implements StorageInterface
     {
         $this->init();
 
-        $sth = $this->pdo->prepare("UPDATE {$this->database_table}
-            SET start_time = NOW(), status = ?, retries_remaining = retries_remaining - 1
+        $sth = $this->pdo->prepare("UPDATE {$this->database}.{$this->table}
+            SET
+              start_time = NOW(),
+              status = ?,
+              next_retry_time = null,
+              retries_remaining = retries_remaining - 1
             WHERE id = ?");
         $sth->execute(array(JobRow::STATUS_IN_PROGRESS, $JobRow->getId()));
     }
@@ -119,46 +136,77 @@ class StorageMysqlSingleTable implements StorageInterface
     {
         $this->init();
 
-        $sth = $this->pdo->prepare("UPDATE {$this->database_table}
-            SET finish_time = NOW(), status = ? WHERE id = ?");
-        $sth->execute(array(JobRow::STATUS_SUCCESS, $JobRow->getId()));
+        $sth = $this->pdo->prepare("UPDATE {$this->database}.{$this->table}
+            SET
+              finish_time = NOW(),
+              status = ?,
+              next_retry_time = null
+            WHERE
+              id = ?
+              AND status = ?");
+        $sth->execute(array(JobRow::STATUS_SUCCESS, $JobRow->getId(), JobRow::STATUS_IN_PROGRESS));
+        assert($sth->rowCount() === 1);
     }
 
     public function markFailTemporary(JobRow $JobRow)
     {
         $this->init();
 
-        $sth = $this->pdo->prepare("UPDATE {$this->database_table}
-            SET finish_time = NOW(), status = ?
-            WHERE id = ?");
-        $sth->execute(array(JobRow::STATUS_FAIL_TEMPORARY, $JobRow->getId()));
+        $sth = $this->pdo->prepare("UPDATE {$this->database}.{$this->table}
+            SET
+              finish_time = NOW(),
+              status = ?,
+              next_retry_time = if(retries_remaining = 0, null, NOW() + interval retry_timeout second)
+            WHERE
+              id = ?
+              AND status = ?");
+        $sth->execute(array(JobRow::STATUS_FAIL_TEMPORARY, $JobRow->getId(), JobRow::STATUS_IN_PROGRESS));
+        assert($sth->rowCount() === 1);
     }
 
     public function markFailPermanent(JobRow $JobRow)
     {
         $this->init();
 
-        $sth = $this->pdo->prepare("UPDATE {$this->database_table}
-            SET finish_time = NOW(), status = ?, retries_left = 0
-            WHERE id = ?");
-        $sth->execute(array(JobRow::STATUS_FAIL_PERMANENT, $JobRow->getId()));
+        $sth = $this->pdo->prepare("UPDATE {$this->database}.{$this->table}
+            SET
+              finish_time = NOW(),
+              status = ?,
+              retries_remaining = 0,
+              next_retry_time = null
+            WHERE
+              id = ?
+              AND status = ?");
+        $sth->execute(array(JobRow::STATUS_FAIL_PERMANENT, $JobRow->getId(), JobRow::STATUS_IN_PROGRESS));
+        assert($sth->rowCount() === 1);
     }
 
     public function markError(JobRow $JobRow)
     {
         $this->init();
 
-        $sth = $this->pdo->prepare("UPDATE {$this->database_table}
-            SET finish_time = NOW(), status = ? WHERE id = ?");
-        $sth->execute(array(JobRow::STATUS_ERROR, $JobRow->getId()));
+        $sth = $this->pdo->prepare("UPDATE {$this->database}.{$this->table}
+            SET
+              finish_time = NOW(),
+              status = ?,
+              next_retry_time = null,
+              retries_remaining = 0
+            WHERE
+              id = ?
+              AND status = ?");
+        $sth->execute(array(JobRow::STATUS_ERROR, $JobRow->getId(), JobRow::STATUS_IN_PROGRESS));
+        assert($sth->rowCount() === 1);
     }
 
     public function markTimeoutIfInProgress(array $job_ids)
     {
         $this->init();
 
-        $sth = $this->pdo->prepare("UPDATE {$this->database_table}
-            SET finish_time = NOW(), status = ?
+        $sth = $this->pdo->prepare("UPDATE {$this->database}.{$this->table}
+            SET
+              finish_time = NOW(),
+              status = ?,
+              next_retry_time = if(retries_remaining = 0, null, next_retry_time + interval timeout seconds)
             WHERE id IN(?) AND status = ?");
         $params = array(
             JobRow::STATUS_TIMEOUT,

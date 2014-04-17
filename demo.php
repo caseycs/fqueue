@@ -16,6 +16,7 @@ class Job implements FQueue\JobInterface
 
 class Storage implements FQueue\StorageInterface
 {
+    public function enqueue($queue, $class, array $init_params) {}
     public function getJobs($queue, array $exclude_ids, $limit){
         return array(new FQueue\JobRow('Job', array(), (int)rand(1,999)));
     }

@@ -73,7 +73,4 @@ and then all start from the beginnig.
 
 ## TODO
 
-Important
-
- * pause between retries
- * configurable mysql storage from the box
+ * Please, suggest your ideas!

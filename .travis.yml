@@ -6,3 +6,5 @@ php:
 before_install:
  - sudo apt-get update -qq
  - composer install
+before_script:
+  - mysql -e 'create database if not exists test;'

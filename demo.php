@@ -4,7 +4,7 @@ require 'vendor/autoload.php';
 class Job implements FQueue\JobInterface
 {
     public function __construct($container) {}
-    public function init(array $args) {return true;}
+    public function init(array $params) {return true;}
     public function run(\Psr\Log\LoggerInterface $Logger) {
         $Logger->info('Job success!');
         return FQueue\JobRow::STATUS_SUCCESS;

@@ -7,7 +7,7 @@ class TestJobFailPermanent implements \FQueue\JobInterface
     {
     }
 
-    public function init(array $args)
+    public function init(array $params)
     {
         return true;
     }

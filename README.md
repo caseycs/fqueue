@@ -76,6 +76,7 @@ and then all start from the beginnig.
 Important
 
  * configurable mysql storage from the box
+ * task insertion logic
 
 Maybe sometime
 

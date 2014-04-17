@@ -3,6 +3,9 @@ namespace FQueue;
 
 interface StorageInterface
 {
+    /**
+     * @return JobRow[]
+     */
     function getJobs($queue, $limit);
     function cleanup($last_unixtime);
     function markInProgress(JobRow $JobRow);

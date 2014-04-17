@@ -7,7 +7,7 @@ class JobRow
     const STATUS_IN_PROGRESS = 'in_progress';
     const STATUS_SUCCESS = 'success';
 
-    const STATUS_FAIL_TEMPORARY = 'tail_permanent';
+    const STATUS_FAIL_TEMPORARY = 'fail_permanent';
     const STATUS_FAIL_PERMANENT = 'fail_temporary';
     const STATUS_ERROR = 'error';
     const STATUS_TIMEOUT = 'timeout';

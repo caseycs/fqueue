@@ -4,9 +4,10 @@ namespace FQueue;
 class JobRow
 {
     const RESULT_SUCCESS = 1;
-    const RESULT_FAIL = 2;
-    const RESULT_ERROR = 3;
-    const RESULT_TIMEOUT = 4;
+    const RESULT_FAIL_TEMPORARY = 2;
+    const RESULT_FAIL_PERMANENT = 3;
+    const RESULT_ERROR = 4;
+    const RESULT_TIMEOUT = 5;
 
     private $class, $id;
     private $params = array();

@@ -75,7 +75,6 @@ and then all start from the beginnig.
 
 Important
 
- * fork tests
  * configurable mysql storage from the box
 
 Maybe sometime

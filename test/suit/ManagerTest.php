@@ -31,7 +31,7 @@ class ManagerTest extends \FQueue\FQueueTestCase
         $Storage = $this->getMock('FQueue\TestStorage');
 
         $Job = new FQueue\JobRow();
-        $Job->setClass('FQueue\TestJob');
+        $Job->setClass('FQueue\TestJobSuccess');
         $Job->setParams(array());
         $Job->setId(1);
 

@@ -86,9 +86,12 @@ class Fork
             if ($result === JobRow::RESULT_SUCCESS) {
                 $this->Logger->info("success", $context);
                 $this->Storage->markSuccess($JobRow);
-            } elseif ($result === JobRow::RESULT_FAIL) {
-                $this->Logger->error("fail", $context);
-                $this->Storage->markFail($JobRow);
+            } elseif ($result === JobRow::RESULT_FAIL_TEMPORARY) {
+                $this->Logger->error("fail temporary", $context);
+                $this->Storage->markFailTemporary($JobRow);
+            } elseif ($result === JobRow::RESULT_FAIL_PERMANENT) {
+                $this->Logger->error("fail permanent", $context);
+                $this->Storage->markFailPermanent($JobRow);
             } else {
                 $this->Storage->markError($JobRow);
                 $this->Logger->emergency('invalid result', $context);

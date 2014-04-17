@@ -1,7 +1,7 @@
 <?php
 namespace FQueue;
 
-class TestJob implements \FQueue\JobInterface
+class TestJobSuccess implements \FQueue\JobInterface
 {
     public function __construct($container)
     {

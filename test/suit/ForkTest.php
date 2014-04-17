@@ -9,7 +9,7 @@ class ForkTest extends \FQueue\FQueueTestCase
         $Storage->expects($this->exactly(2))->method('markStarted');
         $Storage->expects($this->exactly(2))->method('markSuccess');
 
-        $JobRow = new FQueue\JobRow('FQueue\TestJob');
+        $JobRow = new FQueue\JobRow('FQueue\TestJobSuccess');
 
         $jobs = array(
             $JobRow,
@@ -28,18 +28,81 @@ class ForkTest extends \FQueue\FQueueTestCase
         $Storage->runAndDie();
     }
 
-    public function test_job_fail()
+    public function test_job_fail_temporary()
     {
-        $this->markTestIncomplete();
+        $Storage = $this->getMock('FQueue\TestStorage');
+        $Isolator = $this->getMock('Icecave\Isolator\Isolator');
+
+        $Storage->expects($this->exactly(1))->method('markStarted');
+        $Storage->expects($this->exactly(1))->method('markFailTemporary');
+
+        $JobRow = new FQueue\JobRow('FQueue\TestJobFailTemporary');
+
+        $jobs = array(
+            $JobRow,
+        );
+
+        $Storage = new FQueue\Fork(
+            $Storage,
+            $this->getLogger(),
+            $Isolator,
+            null,
+            'test',
+            $jobs,
+            500
+        );
+        $Storage->runAndDie();
+    }
+
+    public function test_job_fail_permanent()
+    {
+        $Storage = $this->getMock('FQueue\TestStorage');
+        $Isolator = $this->getMock('Icecave\Isolator\Isolator');
+
+        $Storage->expects($this->exactly(1))->method('markStarted');
+        $Storage->expects($this->exactly(1))->method('markFailPermanent');
+
+        $JobRow = new FQueue\JobRow('FQueue\TestJobFailPermanent');
+
+        $jobs = array(
+            $JobRow,
+        );
+
+        $Storage = new FQueue\Fork(
+            $Storage,
+            $this->getLogger(),
+            $Isolator,
+            null,
+            'test',
+            $jobs,
+            500
+        );
+        $Storage->runAndDie();
     }
 
     public function test_job_invalid_result()
     {
-        $this->markTestIncomplete();
-    }
+        $Storage = $this->getMock('FQueue\TestStorage');
+        $Isolator = $this->getMock('Icecave\Isolator\Isolator');
 
-    public function test_time_limit()
-    {
-        $this->markTestIncomplete();
+        $Storage->expects($this->exactly(1))->method('markStarted');
+        $Storage->expects($this->exactly(1))->method('markError');
+
+        $JobRow = new FQueue\JobRow('FQueue\TestJobFailInvalidResult');
+
+        $jobs = array(
+            $JobRow,
+        );
+
+        $Storage = new FQueue\Fork(
+            $Storage,
+            $this->getLogger(),
+            $Isolator,
+            null,
+            'test',
+            $jobs,
+            500
+        );
+        $Storage->runAndDie();
     }
 }

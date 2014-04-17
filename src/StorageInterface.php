@@ -7,7 +7,8 @@ interface StorageInterface
     function cleanup($last_unixtime);
     function markStarted(JobRow $JobRow);
     function markSuccess(JobRow $JobRow);
-    function markFail(JobRow $JobRow);
+    function markFailTemporary(JobRow $JobRow);
+    function markFailPermanent(JobRow $JobRow);
     function markError(JobRow $JobRow);
     function markTimeoutIfInProgress(array $job_ids);
     function onForkInit();

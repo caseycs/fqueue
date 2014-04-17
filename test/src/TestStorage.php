@@ -34,7 +34,12 @@ class TestStorage implements \FQueue\StorageInterface
 
     }
 
-    public function markFail(JobRow $JobRow)
+    public function markFailTemporary(JobRow $JobRow)
+    {
+
+    }
+
+    public function markFailPermanent(JobRow $JobRow)
     {
 
     }

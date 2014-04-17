@@ -18,9 +18,9 @@ class Fork
      */
     private $jobs = array();
 
-    private $jobs_classes_initialized = array();
-
     private $max_execution_time;
+
+    private $container;
 
     /* @var Isolator */
     private $Isolator;
@@ -29,6 +29,7 @@ class Fork
         StorageInterface $Storage,
         \Psr\Log\LoggerInterface $Logger,
         Isolator $Isolator,
+        $container,
         $queue,
         array $jobs,
         $max_execution_time)
@@ -36,6 +37,7 @@ class Fork
         $this->Storage = $Storage;
         $this->Logger = $Logger;
         $this->Isolator = $Isolator;
+        $this->container = $container;
 
         $this->queue = $queue;
         $this->jobs = $jobs;
@@ -73,13 +75,8 @@ class Fork
     private function startJobs()
     {
         foreach ($this->jobs as $JobRow) {
-            $Job = Helper::initJob($JobRow, $this->Logger);
+            $Job = Helper::initJob($JobRow, $this->container, $this->Logger);
             if (!$Job) continue;
-
-            if (!in_array($JobRow->getClass(), $this->jobs_classes_initialized, true)) {
-                $this->jobs_classes_initialized[] = $JobRow->getClass();
-                $Job->firstTimeInFork();
-            }
 
             $this->Storage->markStarted($JobRow);
             $result = $Job->run($this->Logger);

@@ -3,7 +3,7 @@ namespace FQueue;
 
 class TestJob implements \FQueue\JobInterface
 {
-    public function firstTimeInFork()
+    public function __construct($container)
     {
     }
 

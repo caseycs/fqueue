@@ -3,7 +3,7 @@ require 'vendor/autoload.php';
 
 class Job implements FQueue\JobInterface
 {
-    public function firstTimeInFork() {}
+    public function __construct($container) {}
     public function init(array $args) {return true;}
     public function run(\Psr\Log\LoggerInterface $Logger) {
         $Logger->info('Job success!');
@@ -31,7 +31,7 @@ class Storage implements FQueue\StorageInterface
 $LoggerManager = new Monolog\Logger('manager');
 $Storage = new Storage;
 
-$Manager = new FQueue\Manager($LoggerManager, $Storage, 'demo_forks_stage.json');
+$Manager = new FQueue\Manager($LoggerManager, $Storage, null, 'demo_forks_stage.json');
 
 $LoggerQueue1 = new Monolog\Logger('queue1');
 $Manager->addQueue('queue1', 1, 1, 10, $LoggerQueue1);

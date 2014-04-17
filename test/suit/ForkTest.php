@@ -20,6 +20,7 @@ class ForkTest extends \FQueue\FQueueTestCase
             $Storage,
             $this->getLogger(),
             $Isolator,
+            null,
             'test',
             $jobs,
             500

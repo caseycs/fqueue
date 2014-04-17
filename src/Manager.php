@@ -36,15 +36,19 @@ class Manager
 
     private $forks_state_file = null;
 
+    private $container = null;
+
     public function __construct(
         \Psr\Log\LoggerInterface $Logger,
         StorageInterface $Storage,
+        $container = null,
         $forks_state_file = null,
         Isolator $isolator = null)
     {
         $this->Logger = $Logger;
         $this->Storage = $Storage;
         $this->isolator = Isolator::get($isolator);
+        $this->container = $container;
         $this->forks_state_file = $forks_state_file;
 
         $this->cleanup_seconds = 60 * 60 * 24 * 2;
@@ -141,7 +145,7 @@ class Manager
             /* @var JobRow $JobRow */
             $max_execution_time = $this->fork_max_execution_time_init; // seconds initial for system service needs
             foreach ($jobs2fork as $index => $JobRow) {
-                $Job = Helper::initJob($JobRow, $this->Logger);
+                $Job = Helper::initJob($JobRow, $this->container, $this->Logger);
                 if (!$Job) {
                     unset($jobs2fork[$index]);
                     continue;
@@ -183,7 +187,15 @@ class Manager
                 $this->saveForksState();
             } else {
                 // we are fork
-                $Fork = new Fork($this->Storage, $queue_params['logger'], $this->isolator, $queue, $jobs2fork, $max_execution_time);
+                $Fork = new Fork(
+                    $this->Storage,
+                    $queue_params['logger'],
+                    $this->isolator,
+                    $this->container,
+                    $queue,
+                    $jobs2fork,
+                    $max_execution_time
+                );
                 $Fork->runAndDie();
             }
         }

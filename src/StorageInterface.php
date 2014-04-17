@@ -3,6 +3,7 @@ namespace FQueue;
 
 interface StorageInterface
 {
+    function enqueue($queue, $class, array $init_params);
     /**
      * @return JobRow[]
      */

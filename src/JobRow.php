@@ -3,13 +3,16 @@ namespace FQueue;
 
 class JobRow
 {
-    const RESULT_SUCCESS = 1;
-    const RESULT_FAIL_TEMPORARY = 2;
-    const RESULT_FAIL_PERMANENT = 3;
-    const RESULT_ERROR = 4;
-    const RESULT_TIMEOUT = 5;
+    const STATUS_NEW = 'new';
+    const STATUS_IN_PROGRESS = 'in_progress';
+    const STATUS_SUCCESS = 'success';
 
-    private $class, $id;
+    const STATUS_FAIL_TEMPORARY = 'tail_permanent';
+    const STATUS_FAIL_PERMANENT = 'fail_temporary';
+    const STATUS_ERROR = 'error';
+    const STATUS_TIMEOUT = 'timeout';
+
+    private $class, $id, $retries;
     private $params = array();
 
     public function __construct($class = null, array $params = array(), $id = null)
@@ -47,6 +50,16 @@ class JobRow
     public function setId($id)
     {
         $this->id = $id;
+    }
+
+    public function getRetries()
+    {
+        return $this->retries;
+    }
+
+    public function setRetries($retries)
+    {
+        $this->retries = $retries;
     }
 }
 

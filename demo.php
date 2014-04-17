@@ -7,11 +7,10 @@ class Job implements FQueue\JobInterface
     public function init(array $args) {return true;}
     public function run(\Psr\Log\LoggerInterface $Logger) {
         $Logger->info('Job success!');
-        return FQueue\JobRow::RESULT_SUCCESS;
+        return FQueue\JobRow::STATUS_SUCCESS;
     }
-    public function getMaxExecutionTime() {
-        return 1;
-    }
+    public function getMaxExecutionTime() {return 1;}
+    public function getMaxRetries() {return 1;}
 }
 
 class Storage implements FQueue\StorageInterface
@@ -20,12 +19,13 @@ class Storage implements FQueue\StorageInterface
         return array(new FQueue\JobRow('Job', array(), (int)rand(1,999)));
     }
     function cleanup($last_unixtime){return 0;}
-    function markStarted(FQueue\JobRow $JobRow){}
+    function markInProgress(FQueue\JobRow $JobRow){}
     function markSuccess(FQueue\JobRow $JobRow){}
-    function markFail(FQueue\JobRow $JobRow){}
+    function markFailTemporary(FQueue\JobRow $JobRow){}
+    function markFailPermanent(FQueue\JobRow $JobRow){}
     function markError(FQueue\JobRow $JobRow){}
     function markTimeoutIfInProgress(array $ids){}
-    function onForkInit(){}
+    function beforeFork(){}
 }
 
 $LoggerManager = new Monolog\Logger('manager');

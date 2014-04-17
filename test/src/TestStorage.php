@@ -16,7 +16,8 @@ class TestStorage implements \FQueue\StorageInterface
 
     public function getJobs($queue, $limit)
     {
-        return array_splice($this->queue[$queue], 0, $limit);
+        $result = array_splice($this->queue[$queue], 0, $limit);
+        return $result;
     }
 
     public function cleanup($last_unixtime)
@@ -24,7 +25,7 @@ class TestStorage implements \FQueue\StorageInterface
 
     }
 
-    public function markStarted(JobRow $JobRow)
+    public function markInProgress(JobRow $JobRow)
     {
 
     }
@@ -55,7 +56,7 @@ class TestStorage implements \FQueue\StorageInterface
         $this->timeout_ids = array_merge($this->timeout_ids, $ids);
     }
 
-    public function onForkInit()
+    public function beforeFork()
     {
     }
 }

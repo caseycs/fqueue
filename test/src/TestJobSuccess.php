@@ -14,10 +14,15 @@ class TestJobSuccess implements \FQueue\JobInterface
 
     public function run(\Psr\Log\LoggerInterface $Logger)
     {
-        return JobRow::RESULT_SUCCESS;
+        return JobRow::STATUS_SUCCESS;
     }
 
     public function getMaxExecutionTime()
+    {
+        return 1;
+    }
+
+    public function getMaxRetries()
     {
         return 1;
     }

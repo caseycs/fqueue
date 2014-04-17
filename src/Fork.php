@@ -68,8 +68,6 @@ class Fork
         $this->Logger->info("for init", $context);
 
         $this->Isolator->set_time_limit($this->max_execution_time);
-
-        $this->Storage->onForkInit();
     }
 
     private function startJobs()
@@ -78,18 +76,23 @@ class Fork
             $Job = Helper::initJob($JobRow, $this->container, $this->Logger);
             if (!$Job) continue;
 
-            $this->Storage->markStarted($JobRow);
+            $this->Storage->markInProgress($JobRow);
             $result = $Job->run($this->Logger);
 
             $context = array('class' => $JobRow->getClass(), 'id' => $JobRow->getId());
 
-            if ($result === JobRow::RESULT_SUCCESS) {
+            if ($result === JobRow::STATUS_SUCCESS) {
                 $this->Logger->info("success", $context);
                 $this->Storage->markSuccess($JobRow);
-            } elseif ($result === JobRow::RESULT_FAIL_TEMPORARY) {
-                $this->Logger->error("fail temporary", $context);
-                $this->Storage->markFailTemporary($JobRow);
-            } elseif ($result === JobRow::RESULT_FAIL_PERMANENT) {
+            } elseif ($result === JobRow::STATUS_FAIL_TEMPORARY) {
+                if ($JobRow->getRetries() + 1 < $Job->getMaxRetries()) {
+                    $this->Logger->error("fail temporary", $context);
+                    $this->Storage->markFailTemporary($JobRow);
+                } else {
+                    $this->Logger->error("fail temporary, mark permanent", $context);
+                    $this->Storage->markFailPermanent($JobRow);
+                }
+            } elseif ($result === JobRow::STATUS_FAIL_PERMANENT) {
                 $this->Logger->error("fail permanent", $context);
                 $this->Storage->markFailPermanent($JobRow);
             } else {

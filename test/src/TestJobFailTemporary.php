@@ -14,11 +14,16 @@ class TestJobFailTemporary implements \FQueue\JobInterface
 
     public function run(\Psr\Log\LoggerInterface $Logger)
     {
-        return JobRow::RESULT_FAIL_TEMPORARY;
+        return JobRow::STATUS_FAIL_TEMPORARY;
     }
 
     public function getMaxExecutionTime()
     {
         return 1;
+    }
+
+    public function getMaxRetries()
+    {
+        return 2;
     }
 }

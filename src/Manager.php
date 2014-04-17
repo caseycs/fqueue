@@ -164,6 +164,8 @@ class Manager
                 continue;
             }
 
+            $this->Storage->beforeFork();
+
             $pid = $this->isolator->pcntl_fork();
             if ($pid === -1) {
                 $this->Logger->emergency("{$queue}: could not fork");

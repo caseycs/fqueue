@@ -21,4 +21,9 @@ class TestJobTimeout implements \FQueue\JobInterface
     {
         return 0;
     }
+
+    public function getMaxRetries()
+    {
+        return 1;
+    }
 }

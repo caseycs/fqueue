@@ -89,33 +89,15 @@ class ManagerTest extends \FQueue\FQueueTestCase
 
     public function test_job_no_timeout()
     {
-        $Storage = $this->getMock('FQueue\TestStorage');
-
         $Job = new FQueue\JobRow();
         $Job->setClass('FQueue\TestJobNoTimeout');
         $Job->setParams(array());
         $Job->setId(1);
 
-        $Storage
-            ->expects($this->at(1))
-            ->method('getJobs')
-            ->with($this->equalTo('test'), $this->equalTo(10))
-            ->will($this->returnValue(array($Job)));
-        $Storage
-            ->expects($this->at(2))
-            ->method('getJobs')
-            ->with($this->equalTo('test'), $this->equalTo(10))
-            ->will($this->returnValue(array()));
-        $Storage
-            ->expects($this->at(3))
-            ->method('getJobs')
-            ->with($this->equalTo('test'), $this->equalTo(10))
-            ->will($this->returnValue(array()));
-        $Storage
-            ->expects($this->at(4))
-            ->method('getJobs')
-            ->with($this->equalTo('test'), $this->equalTo(10))
-            ->will($this->returnValue(array()));
+        $queue = array(
+            'test' => array($Job),
+        );
+        $Storage = new FQueue\TestStorage($queue);
 
         $Manager = new FQueue\Manager($this->getLogger(), $Storage);
         $Manager->addQueue('test', 1, 1, 10, $this->getLogger());

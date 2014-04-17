@@ -1,7 +1,7 @@
 <?php
 namespace FQueue;
 
-class TestJobNoTimeout implements \FQueue\JobInterface
+class TestJobFailTemporaryLast implements \FQueue\JobInterface
 {
     public function __construct($container)
     {
@@ -14,12 +14,12 @@ class TestJobNoTimeout implements \FQueue\JobInterface
 
     public function run(\Psr\Log\LoggerInterface $Logger)
     {
-        sleep(10);
+        return JobRow::STATUS_FAIL_TEMPORARY;
     }
 
     public function getMaxExecutionTime()
     {
-        return 20;
+        return 1;
     }
 
     public function getMaxRetries()

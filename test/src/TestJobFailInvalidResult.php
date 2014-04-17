@@ -21,4 +21,9 @@ class TestJobFailInvalidResult implements \FQueue\JobInterface
     {
         return 1;
     }
+
+    public function getMaxRetries()
+    {
+        return 1;
+    }
 }

@@ -14,10 +14,15 @@ class TestJobFailPermanent implements \FQueue\JobInterface
 
     public function run(\Psr\Log\LoggerInterface $Logger)
     {
-        return JobRow::RESULT_FAIL_PERMANENT;
+        return JobRow::STATUS_FAIL_PERMANENT;
     }
 
     public function getMaxExecutionTime()
+    {
+        return 1;
+    }
+
+    public function getMaxRetries()
     {
         return 1;
     }

@@ -22,7 +22,12 @@ class TestJobFailInvalidResult implements \FQueue\JobInterface
         return 1;
     }
 
-    public function getMaxRetries()
+    public static function getRetries()
+    {
+        return 1;
+    }
+
+    public static function getRetriesTimeout()
     {
         return 1;
     }

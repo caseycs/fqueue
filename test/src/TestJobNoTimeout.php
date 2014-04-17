@@ -22,8 +22,14 @@ class TestJobNoTimeout implements \FQueue\JobInterface
         return 20;
     }
 
-    public function getMaxRetries()
+    public static function getRetries()
     {
         return 1;
     }
+
+    public static function getRetriesTimeout()
+    {
+        return 1;
+    }
+
 }

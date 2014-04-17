@@ -6,13 +6,12 @@ class JobRow
     const STATUS_NEW = 'new';
     const STATUS_IN_PROGRESS = 'in_progress';
     const STATUS_SUCCESS = 'success';
-
-    const STATUS_FAIL_TEMPORARY = 'fail_permanent';
-    const STATUS_FAIL_PERMANENT = 'fail_temporary';
+    const STATUS_FAIL_TEMPORARY = 'fail_temporary';
+    const STATUS_FAIL_PERMANENT = 'fail_permanent';
     const STATUS_ERROR = 'error';
     const STATUS_TIMEOUT = 'timeout';
 
-    private $class, $id, $retries;
+    private $class, $id, $retries_remaining;
     private $params = array();
 
     public function __construct($class = null, array $params = array(), $id = null)
@@ -52,14 +51,14 @@ class JobRow
         $this->id = $id;
     }
 
-    public function getRetries()
+    public function getRetriesRemaining()
     {
-        return $this->retries;
+        return $this->retries_remaining;
     }
 
-    public function setRetries($retries)
+    public function setRetriesRemaining($retries_remaining)
     {
-        $this->retries = $retries;
+        $this->retries_remaining = $retries_remaining;
     }
 }
 

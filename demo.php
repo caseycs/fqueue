@@ -10,12 +10,12 @@ class Job implements FQueue\JobInterface
         return FQueue\JobRow::STATUS_SUCCESS;
     }
     public function getMaxExecutionTime() {return 1;}
-    public function getMaxRetries() {return 1;}
+    public static function getRetries() {return 1;}
 }
 
 class Storage implements FQueue\StorageInterface
 {
-    public function getJobs($queue, $limit){
+    public function getJobs($queue, array $exclude_ids, $limit){
         return array(new FQueue\JobRow('Job', array(), (int)rand(1,999)));
     }
     function cleanup($last_unixtime){return 0;}

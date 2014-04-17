@@ -37,32 +37,7 @@ class ForkTest extends \FQueue\FQueueTestCase
         $Storage->expects($this->exactly(1))->method('markFailTemporary');
 
         $JobRow = new FQueue\JobRow('FQueue\TestJobFailTemporary');
-
-        $jobs = array(
-            $JobRow,
-        );
-
-        $Storage = new FQueue\Fork(
-            $Storage,
-            $this->getLogger(),
-            $Isolator,
-            null,
-            'test',
-            $jobs,
-            500
-        );
-        $Storage->runAndDie();
-    }
-
-    public function test_job_fail_temporary_last()
-    {
-        $Storage = $this->getMock('FQueue\TestStorage');
-        $Isolator = $this->getMock('Icecave\Isolator\Isolator');
-
-        $Storage->expects($this->exactly(1))->method('markInProgress');
-        $Storage->expects($this->exactly(1))->method('markFailPermanent');
-
-        $JobRow = new FQueue\JobRow('FQueue\TestJobFailTemporaryLast');
+        $JobRow->setRetriesRemaining(2);
 
         $jobs = array(
             $JobRow,

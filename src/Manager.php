@@ -281,7 +281,11 @@ class Manager
     {
         if (count($this->jobs_queue[$queue]) < $queue_params['manager_queue']) {
             $limit = $queue_params['manager_queue'] - count($this->jobs_queue[$queue]);
-            $jobs_new = $this->Storage->getJobs($queue, $limit);
+
+            $exclude_ids = array();
+            foreach ($this->jobs_queue[$queue] as $JobRow) $exclude_ids[] = $JobRow->getId();
+
+            $jobs_new = $this->Storage->getJobs($queue, $exclude_ids, $limit);
             $this->jobs_queue[$queue] = array_merge($this->jobs_queue[$queue], $jobs_new);
             $this->Logger->debug("{$queue}: fetched jobs: " . count($jobs_new)
                 . ", total in-memory jobs: " . count($this->jobs_queue[$queue]));

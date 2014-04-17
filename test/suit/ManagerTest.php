@@ -13,7 +13,7 @@ class ManagerTest extends \FQueue\FQueueTestCase
         $Storage
             ->expects($this->once())
             ->method('getJobs')
-            ->with($this->equalTo('test'), $this->equalTo(10))
+            ->with('test', array(), 10)
             ->will($this->returnValue(array($Job)));
 
         $Isolator = $this->getMock('Icecave\Isolator\Isolator', array('pcntl_wait', 'pcntl_fork'));
@@ -38,7 +38,7 @@ class ManagerTest extends \FQueue\FQueueTestCase
         $Storage
             ->expects($this->once())
             ->method('getJobs')
-            ->with($this->equalTo('test'), $this->equalTo(10))
+            ->with('test', array(), 10)
             ->will($this->returnValue(array($Job)));
 
         $pid = 111;

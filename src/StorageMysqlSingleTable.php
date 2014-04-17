@@ -34,31 +34,42 @@ class StorageMysqlSingleTable implements StorageInterface
         $this->init();
 
         $sth = $this->pdo->prepare("INSERT INTO {$this->database_table}
-            (queue, class, status, params, create_time, retries)
-            VALUES (?, ?, ?, ?, ?, 0)");
+            (queue, class, status, params, retries_remaining, create_time, retry_time)
+            VALUES (?, ?, ?, ?, ?, ?, ?)");
         $params = array(
             $queue,
             $class,
             JobRow::STATUS_NEW,
             json_encode($init_params),
-            date('Y-m-d H:i:s')
+            $class::getRetries(),
+            date('Y-m-d H:i:s'),
+            date('Y-m-d H:i:s'),
         );
         $sth->execute($params);
         return (int)$this->pdo->lastInsertId();
     }
 
-    public function getJobs($queue, $limit)
+    public function getJobs($queue, array $exclude_ids, $limit)
     {
         $this->init();
 
         $queue = $this->pdo->quote($queue);
-
-        $statuses = $this->pdo->quote(JobRow::STATUS_FAIL_TEMPORARY)
-            . ',' . $this->pdo->quote(JobRow::STATUS_NEW);
+        $statuses = $this->pdo->quote(JobRow::STATUS_NEW)
+            . ',' . $this->pdo->quote(JobRow::STATUS_FAIL_TEMPORARY)
+            . ',' . $this->pdo->quote(JobRow::STATUS_TIMEOUT);
+        if (empty($exclude_ids)) {
+            $exclude_ids = '';
+        } else {
+            $exclude_ids = 'AND id NOT IN (' . join(',', $exclude_ids) . ')';
+        }
 
         $sth = $this->pdo->query("SELECT * FROM {$this->database_table}
-            WHERE queue = {$queue} AND status  IN($statuses)
-            ORDER BY create_time ASC
+            WHERE
+              queue = {$queue}
+              AND retries_remaining > 0
+              AND status IN({$statuses})
+              {$exclude_ids}
+            ORDER BY start_time ASC
             LIMIT {$limit}");
 
         $result = array();
@@ -68,7 +79,7 @@ class StorageMysqlSingleTable implements StorageInterface
             $JobRow->setId((int)$row['id']);
             $JobRow->setClass($row['class']);
             $JobRow->setParams(json_decode($row['params'], true));
-            $JobRow->setRetries((int)$row['retries']);
+            $JobRow->setRetriesRemaining((int)$row['retries_remaining']);
             $result[] = $JobRow;
         }
 
@@ -99,7 +110,7 @@ class StorageMysqlSingleTable implements StorageInterface
         $this->init();
 
         $sth = $this->pdo->prepare("UPDATE {$this->database_table}
-            SET start_time = NOW(), status = ?, retries = retries + 1
+            SET start_time = NOW(), status = ?, retries_remaining = retries_remaining - 1
             WHERE id = ?");
         $sth->execute(array(JobRow::STATUS_IN_PROGRESS, $JobRow->getId()));
     }
@@ -118,7 +129,8 @@ class StorageMysqlSingleTable implements StorageInterface
         $this->init();
 
         $sth = $this->pdo->prepare("UPDATE {$this->database_table}
-            SET finish_time = NOW(), status = ? WHERE id = ?");
+            SET finish_time = NOW(), status = ?
+            WHERE id = ?");
         $sth->execute(array(JobRow::STATUS_FAIL_TEMPORARY, $JobRow->getId()));
     }
 
@@ -127,7 +139,8 @@ class StorageMysqlSingleTable implements StorageInterface
         $this->init();
 
         $sth = $this->pdo->prepare("UPDATE {$this->database_table}
-            SET finish_time = NOW(), status = ? WHERE id = ?");
+            SET finish_time = NOW(), status = ?, retries_left = 0
+            WHERE id = ?");
         $sth->execute(array(JobRow::STATUS_FAIL_PERMANENT, $JobRow->getId()));
     }
 

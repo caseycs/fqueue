@@ -17,7 +17,7 @@ class CleanupTest extends \FQueue\FQueueTestCase
         $Storage
             ->expects($this->once())
             ->method('getJobs')
-            ->with($this->equalTo('test'), $this->equalTo(10))
+            ->with('test', array(), 10)
             ->will($this->returnValue(array()));
 
         $Manager = new FQueue\Manager($this->getLogger(), $Storage);
@@ -38,7 +38,7 @@ class CleanupTest extends \FQueue\FQueueTestCase
         $Storage
             ->expects($this->exactly(10))
             ->method('getJobs')
-            ->with($this->equalTo('test'), $this->equalTo(10))
+            ->with('test', array(), 10)
             ->will($this->returnValue(array()));
 
         $Manager = new FQueue\Manager($this->getLogger(), $Storage);

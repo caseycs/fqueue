@@ -8,5 +8,6 @@ interface JobInterface
     function init(array $params);
     function run(\Psr\Log\LoggerInterface $Logger);
     function getMaxExecutionTime();
-    function getMaxRetries();
+    static function getRetries();
+    static function getRetriesTimeout();
 }

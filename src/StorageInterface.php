@@ -6,7 +6,7 @@ interface StorageInterface
     /**
      * @return JobRow[]
      */
-    function getJobs($queue, $limit);
+    function getJobs($queue, array $exclude_ids, $limit);
     function cleanup($last_unixtime);
     function markInProgress(JobRow $JobRow);
     function markSuccess(JobRow $JobRow);

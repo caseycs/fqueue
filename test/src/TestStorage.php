@@ -14,7 +14,7 @@ class TestStorage implements \FQueue\StorageInterface
         $this->queue = $queue;
     }
 
-    public function getJobs($queue, $limit)
+    public function getJobs($queue, array $exclude_ids, $limit)
     {
         $result = array_splice($this->queue[$queue], 0, $limit);
         return $result;

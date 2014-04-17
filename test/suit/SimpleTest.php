@@ -18,7 +18,7 @@ class SimpleTest extends \FQueue\FQueueTestCase
         $Storage
             ->expects($this->once())
             ->method('getJobs')
-            ->with($this->equalTo('test'), $this->equalTo(10))
+            ->with('test', array(), 10)
             ->will($this->returnValue(array()));
 
         $Manager = new FQueue\Manager($this->getLogger(), $Storage);
@@ -35,7 +35,7 @@ class SimpleTest extends \FQueue\FQueueTestCase
         $Storage
             ->expects($this->exactly(2))
             ->method('getJobs')
-            ->with($this->equalTo('test'), $this->equalTo(10))
+            ->with('test', array(), 10)
             ->will($this->returnValue(array()));
 
         $Manager = new FQueue\Manager($this->getLogger(), $Storage);

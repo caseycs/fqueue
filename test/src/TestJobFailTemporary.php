@@ -22,7 +22,12 @@ class TestJobFailTemporary implements \FQueue\JobInterface
         return 1;
     }
 
-    public function getMaxRetries()
+    public static function getRetries()
+    {
+        return 2;
+    }
+
+    public static function getRetriesTimeout()
     {
         return 2;
     }

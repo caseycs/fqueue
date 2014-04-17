@@ -77,6 +77,7 @@ class Fork
             if (!$Job) continue;
 
             $this->Storage->markInProgress($JobRow);
+            $JobRow->setRetriesRemaining($JobRow->getRetriesRemaining() - 1);
             $result = $Job->run($this->Logger);
 
             $context = array('class' => $JobRow->getClass(), 'id' => $JobRow->getId());
@@ -85,13 +86,8 @@ class Fork
                 $this->Logger->info("success", $context);
                 $this->Storage->markSuccess($JobRow);
             } elseif ($result === JobRow::STATUS_FAIL_TEMPORARY) {
-                if ($JobRow->getRetries() + 1 < $Job->getMaxRetries()) {
-                    $this->Logger->error("fail temporary", $context);
-                    $this->Storage->markFailTemporary($JobRow);
-                } else {
-                    $this->Logger->error("fail temporary, mark permanent", $context);
-                    $this->Storage->markFailPermanent($JobRow);
-                }
+                $this->Logger->error("fail", $context);
+                $this->Storage->markFailTemporary($JobRow);
             } elseif ($result === JobRow::STATUS_FAIL_PERMANENT) {
                 $this->Logger->error("fail permanent", $context);
                 $this->Storage->markFailPermanent($JobRow);

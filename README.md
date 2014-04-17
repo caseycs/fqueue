@@ -75,9 +75,5 @@ and then all start from the beginnig.
 
 Important
 
+ * pause between retries
  * configurable mysql storage from the box
- * task insertion logic
-
-Maybe sometime
-
- * configurable mongo storage from the box

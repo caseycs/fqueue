@@ -264,6 +264,7 @@ class Manager
             $json = json_decode($json, true);
             if (!is_array($json)) {
                 $this->Logger->error('json invalid');
+                return;
             }
             $this->forks_queue_pids = $json;
             $this->Logger->debug('pids state loaded from file');

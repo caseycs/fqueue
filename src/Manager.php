@@ -147,6 +147,7 @@ class Manager
             foreach ($jobs2fork as $index => $JobRow) {
                 $Job = Helper::initJob($JobRow, $this->container, $this->Logger);
                 if (!$Job) {
+                    $this->Storage->markFailPermanent($JobRow);
                     unset($jobs2fork[$index]);
                     continue;
                 }

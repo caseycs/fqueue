@@ -176,8 +176,8 @@ class StorageMysqlSingleTable implements StorageInterface
               next_retry_time = null
             WHERE
               id = ?
-              AND status = ?");
-        $sth->execute(array(JobRow::STATUS_FAIL_PERMANENT, $JobRow->getId(), JobRow::STATUS_IN_PROGRESS));
+              AND status IN(?,?)");
+        $sth->execute(array(JobRow::STATUS_FAIL_PERMANENT, $JobRow->getId(), JobRow::STATUS_NEW, JobRow::STATUS_IN_PROGRESS));
         assert($sth->rowCount() === 1);
     }
 

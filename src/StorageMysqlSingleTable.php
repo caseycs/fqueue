@@ -97,6 +97,21 @@ class StorageMysqlSingleTable implements StorageInterface
         return $result;
     }
 
+    public function getStats()
+    {
+        $this->init();
+
+        $sth = $this->pdo->query("SELECT queue, status, count(*) as cnt
+            FROM {$this->database}.{$this->table}
+            GROUP BY queue, status");
+
+        $result = array();
+        foreach ($sth->fetchAll(\PDO::FETCH_ASSOC) as $row) {
+            $result[$row['queue']][$row['status']] = $row['cnt'];
+        }
+        return $result;
+    }
+
     public function cleanup($last_unixtime)
     {
         $this->init();

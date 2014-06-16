@@ -30,7 +30,7 @@ class StorageMysqlSingleTable implements StorageInterface
         $this->pass = $pass;
     }
 
-    public function enqueue($queue, $class, array $init_params)
+    public function enqueue($queue, $class, array $init_params = array())
     {
         $this->init();
 

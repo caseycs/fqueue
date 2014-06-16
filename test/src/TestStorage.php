@@ -14,7 +14,7 @@ class TestStorage implements \FQueue\StorageInterface
         $this->queue = $queue;
     }
 
-    public function enqueue($queue, $class, array $init_params)
+    public function enqueue($queue, $class, array $init_params = array())
     {
 
     }

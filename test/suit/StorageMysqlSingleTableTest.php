@@ -2,7 +2,7 @@
 class StorageMysqlSingleTableTest extends \PHPUnit_Framework_TestCase
 {
     private $host = 'localhost';
-    private $user = '';
+    private $user = 'travis';
     private $pass = '';
     private $database = 'test';
     private $table = 'fqueue';

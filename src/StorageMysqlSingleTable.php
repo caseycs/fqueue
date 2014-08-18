@@ -121,8 +121,8 @@ class StorageMysqlSingleTable implements StorageInterface
         $sth = $this->pdo->prepare("DELETE FROM {$this->database}.{$this->table}
             WHERE
               finish_time <= ?
-              AND retries_remaining = 0");
-        $sth->execute(array($finish_time));
+              AND (retries_remaining = 0 OR status = ?)");
+        $sth->execute(array($finish_time, JobRow::STATUS_SUCCESS));
 
         return $sth->rowCount();
     }
@@ -142,7 +142,7 @@ class StorageMysqlSingleTable implements StorageInterface
               start_time = NOW(),
               status = ?,
               next_retry_time = null,
-              retries_remaining = retries_remaining - 1
+              retries_remaining = IF(retries_remaining > 0, retries_remaining - 1, 0)
             WHERE id = ?");
         $sth->execute(array(JobRow::STATUS_IN_PROGRESS, $JobRow->getId()));
     }

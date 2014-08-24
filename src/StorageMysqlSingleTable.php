@@ -4,12 +4,12 @@ namespace FQueue;
 // see CREATE TABLE in storage_single_table.sql
 class StorageMysqlSingleTable implements StorageInterface
 {
-    private $host, $port, $user, $pass, $database, $table;
+    protected $host, $port, $user, $pass, $database, $table;
 
     /**
      * @var \PDO
      */
-    private $pdo;
+    protected $pdo;
 
     public function __construct($database, $table)
     {
@@ -94,21 +94,6 @@ class StorageMysqlSingleTable implements StorageInterface
             $result[] = $JobRow;
         }
 
-        return $result;
-    }
-
-    public function getStats()
-    {
-        $this->init();
-
-        $sth = $this->pdo->query("SELECT queue, status, count(*) as cnt
-            FROM {$this->database}.{$this->table}
-            GROUP BY queue, status");
-
-        $result = array();
-        foreach ($sth->fetchAll(\PDO::FETCH_ASSOC) as $row) {
-            $result[$row['queue']][$row['status']] = $row['cnt'];
-        }
         return $result;
     }
 
@@ -233,7 +218,7 @@ class StorageMysqlSingleTable implements StorageInterface
         return $count;
     }
 
-    private function init()
+    protected function init()
     {
         if ($this->pdo) return;
 

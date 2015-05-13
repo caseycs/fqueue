@@ -75,6 +75,7 @@ class Fork
         foreach ($this->jobs as $jobRow) {
             $job = Helper::initJob($jobRow, $this->container, $this->logger);
             if (!$job) {
+                $this->storage->markFailPermanent($jobRow);
                 continue;
             }
 

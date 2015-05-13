@@ -61,6 +61,10 @@ class TestStorage implements \FQueue\StorageInterface
         $this->timeout_ids = array_merge($this->timeout_ids, $ids);
     }
 
+    public function markErrorIfInProgress(array $ids)
+    {
+    }
+
     public function beforeFork()
     {
     }

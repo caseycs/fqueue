@@ -15,5 +15,6 @@ interface StorageInterface
     function markFailPermanent(JobRow $JobRow);
     function markError(JobRow $JobRow);
     function markTimeoutIfInProgress(array $job_ids);
+    function markErrorIfInProgress(array $job_ids);
     function beforeFork();
 }

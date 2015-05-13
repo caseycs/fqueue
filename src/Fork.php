@@ -6,10 +6,10 @@ use Icecave\Isolator\Isolator;
 class Fork
 {
     /* @var \Psr\Log\LoggerInterface */
-    private $Logger;
+    private $logger;
 
     /* @var StorageInterface */
-    private $Storage;
+    private $storage;
 
     private $queue = null;
 
@@ -23,20 +23,20 @@ class Fork
     private $container;
 
     /* @var Isolator */
-    private $Isolator;
+    private $isolator;
 
     public function __construct(
-        StorageInterface $Storage,
-        \Psr\Log\LoggerInterface $Logger,
-        Isolator $Isolator,
+        StorageInterface $storage,
+        \Psr\Log\LoggerInterface $logger,
+        Isolator $isolator,
         $container,
         $queue,
         array $jobs,
         $max_execution_time)
     {
-        $this->Storage = $Storage;
-        $this->Logger = $Logger;
-        $this->Isolator = $Isolator;
+        $this->storage = $storage;
+        $this->logger = $logger;
+        $this->isolator = $isolator;
         $this->container = $container;
 
         $this->queue = $queue;
@@ -53,10 +53,10 @@ class Fork
 
     private function init()
     {
-        $sid = $this->Isolator->posix_setsid();
+        $sid = $this->isolator->posix_setsid();
         if ($sid < 0) {
-            $this->Logger->emergency("FORK posix_setsid failed");
-            $this->Isolator->exit(0);
+            $this->logger->emergency("FORK posix_setsid failed");
+            $this->isolator->exit(0);
         }
 
         $context = array(
@@ -65,40 +65,42 @@ class Fork
             'jobs' => count($this->jobs),
             'max_execution_time' => $this->max_execution_time,
         );
-        $this->Logger->info("for init", $context);
+        $this->logger->info("for init", $context);
 
-        $this->Isolator->set_time_limit($this->max_execution_time);
+        $this->isolator->set_time_limit($this->max_execution_time);
     }
 
     private function startJobs()
     {
-        foreach ($this->jobs as $JobRow) {
-            $Job = Helper::initJob($JobRow, $this->container, $this->Logger);
-            if (!$Job) continue;
+        foreach ($this->jobs as $jobRow) {
+            $job = Helper::initJob($jobRow, $this->container, $this->logger);
+            if (!$job) {
+                continue;
+            }
 
-            $this->Storage->markInProgress($JobRow);
-            $result = $Job->run($this->Logger);
+            $this->storage->markInProgress($jobRow);
+            $result = $job->run($this->logger);
 
-            $context = array('class' => $JobRow->getClass(), 'id' => $JobRow->getId());
+            $context = array('class' => $jobRow->getClass(), 'id' => $jobRow->getId());
 
             if ($result === JobRow::STATUS_SUCCESS) {
-                $this->Logger->info("success", $context);
-                $this->Storage->markSuccess($JobRow);
+                $this->logger->info("success", $context);
+                $this->storage->markSuccess($jobRow);
             } elseif ($result === JobRow::STATUS_FAIL_TEMPORARY) {
-                $this->Logger->error("fail", $context);
-                $this->Storage->markFailTemporary($JobRow);
+                $this->logger->error("fail", $context);
+                $this->storage->markFailTemporary($jobRow);
             } elseif ($result === JobRow::STATUS_FAIL_PERMANENT) {
-                $this->Logger->error("fail permanent", $context);
-                $this->Storage->markFailPermanent($JobRow);
+                $this->logger->error("fail permanent", $context);
+                $this->storage->markFailPermanent($jobRow);
             } else {
-                $this->Storage->markError($JobRow);
-                $this->Logger->emergency('invalid result', $context);
+                $this->storage->markError($jobRow);
+                $this->logger->emergency('invalid result', $context);
             }
         }
     }
 
     private function finish()
     {
-        $this->Isolator->exit(0);
+        $this->isolator->exit(0);
     }
 }

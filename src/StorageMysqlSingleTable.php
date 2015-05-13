@@ -218,9 +218,31 @@ class StorageMysqlSingleTable implements StorageInterface
         return $count;
     }
 
+    public function markErrorIfInProgress(array $job_ids)
+    {
+        $this->init();
+
+        $sth = $this->pdo->prepare("UPDATE {$this->database}.{$this->table}
+            SET
+              finish_time = NOW(),
+              status = ?,
+              next_retry_time = if(retries_remaining = 0, null, next_retry_time + interval timeout seconds)
+            WHERE id IN(?) AND status = ?");
+        $params = array(
+            JobRow::STATUS_ERROR,
+            join(',', $job_ids),
+            JobRow::STATUS_IN_PROGRESS
+        );
+        $count = $sth->execute($params);
+
+        return $count;
+    }
+
     protected function init()
     {
-        if ($this->pdo) return;
+        if ($this->pdo) {
+            return;
+        }
 
         $dsn = "mysql:dbname={$this->database};host={$this->host}";
         $this->pdo = new \PDO(

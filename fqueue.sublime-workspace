@@ -1,0 +1,641 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"path-tmp",
+				"path-tmp-build"
+			],
+			[
+				"path-remote-rele",
+				"path-remote-release-current"
+			],
+			[
+				"path-remote",
+				"path-remote-build-current"
+			],
+			[
+				"path-remote-re",
+				"path-remote-release-current"
+			],
+			[
+				"remote-bui",
+				"path-remote-build-current"
+			],
+			[
+				"remote-rele",
+				"path-remote-release-current"
+			],
+			[
+				"path-remo",
+				"path-remote-releases"
+			],
+			[
+				"pro",
+				"property"
+			],
+			[
+				"build_fil",
+				"build_filename"
+			],
+			[
+				"getCon",
+				"getConnection〔function〕"
+			],
+			[
+				"in",
+				"$input〔variable〕"
+			]
+		]
+	},
+	"buffers":
+	[
+	],
+	"build_system": "",
+	"build_system_choices":
+	[
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 375.0,
+		"last_filter": "prett",
+		"selected_items":
+		[
+			[
+				"prett",
+				"Pretty JSON: Format (Pretty Print) JSON"
+			],
+			[
+				"json",
+				"Pretty JSON: JSON query with ./jq"
+			],
+			[
+				"view",
+				"File: New File Relative to Current View"
+			],
+			[
+				"close",
+				"File: Close All"
+			],
+			[
+				"sort",
+				"Sort Lines"
+			],
+			[
+				"remove ",
+				"Package Control: Remove Package"
+			],
+			[
+				"phpcs",
+				"PHP Code Sniffer: Switch coding standard"
+			],
+			[
+				"install",
+				"Package Control: Install Package"
+			],
+			[
+				"remove",
+				"Package Control: Remove Package"
+			],
+			[
+				"lint",
+				"SublimeLinter: Toggle Linter"
+			],
+			[
+				"html",
+				"HTMLBeautify"
+			],
+			[
+				"beau",
+				"SQL Beautifier: Format Current SQL File"
+			],
+			[
+				"rename",
+				"File: Rename"
+			],
+			[
+				"move",
+				"File: Move"
+			],
+			[
+				"tab",
+				"View: Toggle Tabs"
+			],
+			[
+				"reve",
+				"File: Reveal"
+			],
+			[
+				"local",
+				"Local History: Incremental Diff"
+			],
+			[
+				"history",
+				"Local History: Compare"
+			],
+			[
+				"instl",
+				"Package Control: Install Package"
+			],
+			[
+				"tabs",
+				"View: Toggle Tabs"
+			],
+			[
+				"list",
+				"Schemr: List all schemes"
+			],
+			[
+				"diff",
+				"Git: Diff Current File"
+			],
+			[
+				"differe",
+				"Git: Diff All Files (Ignore Whitespace)"
+			],
+			[
+				"git",
+				"Git: Commit history"
+			],
+			[
+				"keyb",
+				"Preferences: Key Bindings - Default"
+			],
+			[
+				"instal",
+				"Package Control: Install Package"
+			],
+			[
+				"documen",
+				"Goto Documentation"
+			],
+			[
+				"errors",
+				"SublimeLinter: Show All Errors"
+			],
+			[
+				"all er",
+				"SublimeLinter: Show All Errors"
+			],
+			[
+				"theme",
+				"Schemr: List all schemes"
+			]
+		],
+		"width": 579.0
+	},
+	"console":
+	{
+		"height": 126.0,
+		"history":
+		[
+			"import urllib.request,os,hashlib; h = 'eb2297e1a458f27d836c04bb0cbaf282' + 'd0e7a3098092775ccb37ca9d6b2e4b7d'; pf = 'Package Control.sublime-package'; ipp = sublime.installed_packages_path(); urllib.request.install_opener( urllib.request.build_opener( urllib.request.ProxyHandler()) ); by = urllib.request.urlopen( 'http://packagecontrol.io/' + pf.replace(' ', '%20')).read(); dh = hashlib.sha256(by).hexdigest(); print('Error validating download (got %s instead of %s), please try manual install' % (dh, h)) if dh != h else open(os.path.join( ipp, pf), 'wb' ).write(by)"
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"expanded_folders":
+	[
+		"/Users/ilia/github/fqueue"
+	],
+	"file_history":
+	[
+		"/Users/ilia/sites/yip_main/common/www/js/default.js",
+		"/Users/ilia/github/fqueue/fqueue.sublime-project",
+		"/Users/ilia/github/bookerator-new/nextpax.properties.txt",
+		"/Users/ilia/Dropbox/quik/autologin.lua",
+		"/Users/ilia/Downloads/insided-nl-local_markasanswer_daterange_20141001_20141231_downloaded20150608.csv",
+		"/Users/ilia/Downloads/dns-records.CSV",
+		"/Users/ilia/Library/Application Support/Sublime Text 3/Packages/User/Preferences.sublime-settings",
+		"/Users/ilia/Library/Application Support/Sublime Text 3/Packages/Default/Preferences.sublime-settings",
+		"/Users/ilia/github/bicycle-led/app/styles/my.css",
+		"/Users/ilia/github/bicycle-led/Gruntfile.js",
+		"/Users/ilia/github/bicycle-led/deploy.yml",
+		"/Users/ilia/Downloads/yip-staging_markasanswer_daterange_20150201_20150503_downloaded20150605.csv",
+		"/Users/ilia/Downloads/yip-staging_markasanswer_daterange_20150529_20150606_downloaded20150605.csv",
+		"/Users/ilia/github/bicycle-led2/app/scripts/main.js",
+		"/Users/ilia/github/bicycle-led2/app/index.html",
+		"/Users/ilia/github/bicycle-led2/deploy.yml",
+		"/Users/ilia/github/bicycle-led2/bower.json",
+		"/Users/ilia/github/bicycle-led2/deploy.sh",
+		"/Users/ilia/github/bicycle-led2/inventory.ini",
+		"/Users/ilia/github/bicycle-led2/nginx.conf",
+		"/Users/ilia/github/bicycle-led2/dist/index.html",
+		"/Users/ilia/github/tpshop/build.xml",
+		"/Users/ilia/github/tpshop/bootstrap.php",
+		"/Users/ilia/github/tpshop/provision2/salt/supervisor/map.jinja",
+		"/Users/ilia/github/tpshop/provision2/salt/nginx/monit.conf",
+		"/Users/ilia/github/tpshop/provision2/salt/nginx/init.sls",
+		"/Users/ilia/github/tpshop/provision2/salt/tpshop/deploy-dirs.sls",
+		"/Users/ilia/github/tpshop/provision2/salt/top.sls",
+		"/Users/ilia/github/tpshop/provision2/salt/common_production.sls",
+		"/Users/ilia/github/tpshop/provision2/salt/profile/prod.sls",
+		"/Users/ilia/github/tpshop/provision2/salt/tpshop/deploy-env.sls",
+		"/Users/ilia/github/tpshop/provision2/salt/deploy-user/init.sls",
+		"/Users/ilia/github/tpshop/provision2/salt/deploy-user/log.sls",
+		"/Users/ilia/github/tpshop/salt.sh",
+		"/Users/ilia/github/tpshop/provision2/salt/nginx/prod.sls",
+		"/Users/ilia/github/tpshop/provision2/salt/tpshop/production.sls",
+		"/Users/ilia/github/tpshop/provision2/salt/tpshop/images-backup.sls",
+		"/Users/ilia/github/tpshop/provision2/salt/munin/node-db.sls",
+		"/Users/ilia/github/tpshop/provision2/salt/tpshop/dirs.sls",
+		"/Users/ilia/github/tpshop/provision2/salt/tpshop/logrotate.sls",
+		"/Users/ilia/github/tpshop/app/Tpshop/Cli/script/helper/bootstrap.php",
+		"/Users/ilia/github/tpshop/developers.php",
+		"/Users/ilia/github/tpshop/composer.json",
+		"/Users/ilia/github/tpshop/sh/console.php",
+		"/Users/ilia/github/tpshop/config/env_production.php",
+		"/Users/ilia/github/tpshop/app/Tpshop/Domain/Admin/index.php",
+		"/Users/ilia/github/tpshop/app/Tpshop/Domain/Api/index.php",
+		"/Users/ilia/github/tpshop/app/Tpshop/Domain/Front/index.php",
+		"/Users/ilia/github/tpshop/app/Tpshop/Domain/I/image.php",
+		"/Users/ilia/github/tpshop/provision2/salt/php/init.sls",
+		"/Users/ilia/github/tpshop/provision2/salt/supervisor/init.sls",
+		"/Users/ilia/github/tpshop/release-prepare.sh",
+		"/Users/ilia/github/tpshop/deploy/deploy.sh",
+		"/Users/ilia/github/tpshop/sh/munin.php",
+		"/Users/ilia/github/tpshop/sh/fqueue.php",
+		"/Users/ilia/github/tpshop/deploy-credentials.php",
+		"/Users/ilia/github/tpshop/deploy/cleanup.py",
+		"/Users/ilia/github/tpshop/provision2/salt/sphinx/sphinxsearch_rotate.py",
+		"/Users/ilia/github/tpshop/app/bootstrap.php",
+		"/Users/ilia/github/tpshop/provision2/salt/tpshop/deploy-keys.sls",
+		"/Users/ilia/github/tpshop/composer.lock",
+		"/Users/ilia/github/tpshop/provision2/pillar/packages.sls",
+		"/Users/ilia/github/tpshop/vendor/google/apiclient/examples/multi-api.php",
+		"/Users/ilia/github/tpshop/provision2/salt/haproxy/map.jinja",
+		"/Users/ilia/github/tpshop/deploy/prepare.sh",
+		"/Users/ilia/Library/Application Support/Sublime Text 3/Packages/TrailingSpaces/trailing_spaces.sublime-settings",
+		"/Users/ilia/Library/Application Support/Sublime Text 3/Packages/User/trailing_spaces.sublime-settings",
+		"/Users/ilia/github/tpshop/remote-build-switch.sh",
+		"/Users/ilia/github/tpshop/remote-build-prepare.sh",
+		"/Users/ilia/github/tpshop/tpshop.sublime-project",
+		"/Users/ilia/github/tpshop/app/Tpshop/Fetcher/Price/Group.php",
+		"/Users/ilia/github/tpshop/.gitignore",
+		"/Users/ilia/sites/elasticsearch-reindex/run.php",
+		"/Users/ilia/sites/elasticsearch-reindex/vendor/ruflin/elastica/lib/Elastica/Client.php",
+		"/Users/ilia/Library/Application Support/Sublime Text 3/Packages/Default/Default (OSX).sublime-keymap",
+		"/Users/ilia/sites/elasticsearch-reindex/vendor/symfony/console/Command/Command.php",
+		"/Users/ilia/sites/elasticsearch-reindex/vendor/symfony/console/Output/OutputInterface.php",
+		"/Users/ilia/sites/elasticsearch-reindex/src/CreateAliasCommand.php",
+		"/Users/ilia/sites/elasticsearch-reindex/src/DropIndexCommand.php",
+		"/Users/ilia/sites/elasticsearch-reindex/src/ReindexCommand.php",
+		"/Users/ilia/sites/elasticsearch-reindex/composer.json"
+	],
+	"find":
+	{
+		"height": 23.0
+	},
+	"find_in_files":
+	{
+		"height": 93.0,
+		"where_history":
+		[
+			""
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"= Y",
+			"ns",
+			"tabs",
+			"php",
+			"livereload",
+			"proxy",
+			"livereload",
+			"concurrent",
+			"concurrent:se",
+			"concurrent",
+			"connect:",
+			"proxy",
+			"liver",
+			"connect",
+			"'serve'",
+			"port",
+			"'serve",
+			"target",
+			"'serve'",
+			"'server'",
+			"server",
+			"alert-warning",
+			"text",
+			"        <",
+			"server",
+			"connect",
+			"serve",
+			"connect:test",
+			"connect",
+			"test\ntest",
+			"test",
+			"concurrent:test",
+			" data-gallery=\"galleryname\"",
+			"-\n",
+			"dsc/09",
+			"images",
+			"reload",
+			"servers-all",
+			"scp",
+			"deploy",
+			"deplo",
+			"produc",
+			"dirs",
+			"phar",
+			"composer.ph",
+			"prepare",
+			"sudo",
+			"xargs",
+			"deploy-supervisord-update",
+			"deploy-cleanup",
+			"remote",
+			"APPLICATION_ENV",
+			"reread",
+			"developers.php",
+			"xargs",
+			"deploy-cleanup",
+			"cleanu",
+			"release-current-pa",
+			"exec",
+			"relese",
+			"$(",
+			"build-file",
+			"$(",
+			"Copy build",
+			"path-remote-release-current",
+			"mkdir",
+			"build-file",
+			"presente",
+			"path-remote-builds",
+			"xargs",
+			"install",
+			"xargs",
+			"path-home",
+			"\n        ",
+			"        <echo msg=\"Remove old releases on ${host}\" />\n        <ssh username=\"deploy\" host=\"${host}\" pubkeyfile=\"${pubkeyfile}\" privkeyfile=\"${privkeyfile}\" privkeyfilepassphrase=\"${privkeyfilepassphrase}\" command=\"ls -tr -1 ${path-remote-releases} | head -n -5 | xargs sudo rm -rf\" display=\"true\" failonerror=\"true\" />",
+			"build-archive-remove-old",
+			"deploy-build-remove-old",
+			"path-builds",
+			"/home/",
+			"/var",
+			"/$",
+			"var/www/tpshop",
+			"/home/deploy",
+			"/var/www/",
+			"path-remote-symlink",
+			"path-remote-release-current",
+			"server-db-migration",
+			"path-remote-build-current",
+			"\"{",
+			"path-remote-build-current",
+			"path-remote-builds",
+			"privkeyfilepassphrase",
+			"build-cur",
+			"builds",
+			"options",
+			"amend",
+			"kherge/",
+			"amend",
+			"composer",
+			"tab",
+			"5.4.41-1~dotdeb+7.1",
+			"  mysql:\n  {% if grains['oscodename'] == 'squeeze' %}\n    version: 5.5.38-1~dotdeb.0\n  {% elif grains['oscodename'] == 'wheezy' %}\n    version: 5.5.31-1~dotdeb.0\n  {% endif %}\n    fromrepo: dotdeb\n\n",
+			"checkout",
+			"oath-git",
+			"path-build-tmp",
+			"/home/deploy",
+			"home/depl",
+			"~/",
+			"phar",
+			"prepa",
+			"path-tmp-build",
+			"$ta",
+			"{$",
+			"path-build-tmp",
+			"path-tmp-git",
+			"    <target name=\"build-and-deploy\">\n        <phingcall target=\"build\"/>\n        <phingcall target=\"deploy\"/>\n    </target>\n\n",
+			"prepare.sh",
+			"${",
+			"project.basedir",
+			"path-tmp-git",
+			"build_filename",
+			"path-tmp-build",
+			"build_path",
+			"/var/www/tpshop",
+			"build_path",
+			"/var/www/",
+			"/var/www/tpshop/releases/${tag}",
+			"phing"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+			" data-title=\"Amazing bicycle LED flashlight\"",
+			" data=title=\"Amazing bicycle LED flashlight\"",
+			"dsc_09",
+			"deploy-supervisor-reread",
+			"${path-remote-www}",
+			"${path-home}",
+			"path-build-tmp",
+			"path-tmp-git",
+			"$(build-path)",
+			"$BUILD_DIR"
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"sheets":
+			[
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 23.0
+	},
+	"input":
+	{
+		"height": 33.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"output.git":
+	{
+		"height": 102.0
+	},
+	"pinned_build_system": "",
+	"project": "fqueue.sublime-project",
+	"replace":
+	{
+		"height": 42.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"provision2/salt/top.sls",
+				"provision2/salt/top.sls"
+			],
+			[
+				"provision2/salt/supervisor/init.sls",
+				"provision2/salt/supervisor/init.sls"
+			],
+			[
+				"app/tpshop/domain/i/image.php",
+				"app/Tpshop/Domain/I/image.php"
+			],
+			[
+				"app/tpshop/domain/front/index.php",
+				"app/Tpshop/Domain/Front/index.php"
+			],
+			[
+				"app/tpshop/domain/api/index.php",
+				"app/Tpshop/Domain/Api/index.php"
+			],
+			[
+				"app/tpshop/domain/admin/index.php",
+				"app/Tpshop/Domain/Admin/index.php"
+			],
+			[
+				"config/env_production.php",
+				"config/env_production.php"
+			],
+			[
+				"sh/console.php",
+				"sh/console.php"
+			],
+			[
+				"app/tpshop/cli/script/helper/bootstrap.php",
+				"app/Tpshop/Cli/script/helper/bootstrap.php"
+			],
+			[
+				"composer.json",
+				"composer.json"
+			],
+			[
+				"developers.php",
+				"developers.php"
+			],
+			[
+				"boostra",
+				"app/bootstrap.php"
+			],
+			[
+				"developers",
+				"config/developers.php"
+			],
+			[
+				"composer.lock",
+				"composer.lock"
+			],
+			[
+				"buil",
+				"build.xml"
+			],
+			[
+				"composer.",
+				"composer.json"
+			],
+			[
+				"map",
+				"vendor/google/apiclient/examples/multi-api.php"
+			],
+			[
+				"packa",
+				"provision2/pillar/packages.sls"
+			],
+			[
+				"build.xml",
+				"build.xml"
+			],
+			[
+				"group.php",
+				"app/Tpshop/Fetcher/Price/Group.php"
+			],
+			[
+				"price/group",
+				"app/Tpshop/Fetcher/Price/Group.php"
+			]
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 500.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 380.0
+	},
+	"select_symbol":
+	{
+		"height": 375.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 378.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 186.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}

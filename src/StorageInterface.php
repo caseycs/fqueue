@@ -4,17 +4,20 @@ namespace FQueue;
 interface StorageInterface
 {
     function enqueue($queue, $class, array $init_params = array());
+
     /**
      * @return JobRow[]
      */
-    function getJobs($queue, array $exclude_ids, $limit);
-    function cleanup($last_unixtime);
-    function markInProgress(JobRow $JobRow);
-    function markSuccess(JobRow $JobRow);
-    function markFailTemporary(JobRow $JobRow);
-    function markFailPermanent(JobRow $JobRow);
-    function markError(JobRow $JobRow);
-    function markTimeoutIfInProgress(array $job_ids);
-    function markErrorIfInProgress(array $job_ids);
+    function getJobs($queue, $limit);
+    function cleanup($lastUnixtime);
+    function markInProgress($queue, JobRow $JobRow);
+    function markSuccess($queue, JobRow $JobRow);
+    function markFailInit($queue, JobRow $JobRow);
+    function markFailTemporary($queue, JobRow $JobRow);
+    function markFailPermanent($queue, JobRow $JobRow);
+    function markError($queue, JobRow $JobRow);
+    function markReturnInvalid($queue, JobRow $JobRow);
+    function markTimeoutIfInProgress($queue, JobRow $JobRow);
+    function markErrorIfInProgress($queue, JobRow $JobRow);
     function beforeFork();
 }

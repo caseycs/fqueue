@@ -13,28 +13,29 @@ class Manager
     /* @var StorageInterface */
     private $storage;
 
-    private $cycle_usleep = 1000000; // 1 second
+    private $cycleUsleep = 1000000; // 1 second
 
-    private $fork_max_execution_time_init = 2; // 2 seconds + execution time for each fork
+    private $forkMaxExecutionTimeInit = 2; // 2 seconds + execution time for each fork
 
     // насколько старые записи из таблиц очередей можно удалять
-    private $cleanup_seconds;
+    private $cleanupStorageSeconds;
 
     // как часто делать cleanup
-    private $cleanup_every_cycles = 30;
+    private $cleanupEveryCycles = 30;
 
-    private $forks_queue_pids = array();
-
-    private $jobs_queue = array();
+    private $forks = array();
 
     /* @var Isolator */
     private $isolator;
 
-    private $cycles_limit = null;
+    /* @var Helper */
+    private $helper;
 
-    private $cycles_done = 0;
+    private $cyclesLimit = null;
 
-    private $forks_state_file = null;
+    private $cyclesDone = 0;
+
+    private $forksStateFile = null;
 
     private $container = null;
 
@@ -42,61 +43,62 @@ class Manager
         \Psr\Log\LoggerInterface $logger,
         StorageInterface $storage,
         $container = null,
-        $forks_state_file = null,
-        Isolator $isolator = null)
+        $forksStateFile = null,
+        Isolator $isolator = null,
+        EventHandler $eventHandler = null)
     {
         $this->logger = $logger;
         $this->storage = $storage;
         $this->isolator = Isolator::get($isolator);
         $this->container = $container;
-        $this->forks_state_file = $forks_state_file;
+        $this->forksStateFile = $forksStateFile;
+        $this->eventHandler = $eventHandler ? $eventHandler : new EventHandler;
 
-        $this->cleanup_seconds = 60 * 60 * 24 * 2;
+        $this->helper = new Helper($container, $storage, $this->eventHandler);
+
+        $this->cleanupStorageSeconds = 60 * 60 * 24 * 2;
     }
 
     public function addQueue(
         $queue,
-        $forks = 1,
-        $tasks_per_fork = 1,
-        $in_memory_queue_size = 10,
-        \Psr\Log\LoggerInterface $logger = null)
+        $forksCount = 1,
+        $tasksPerFork = 1,
+        \Closure $createLogger)
     {
         if (isset($this->queues[$queue])) {
             throw new \InvalidArgumentException('queue already exists');
         }
 
         $this->queues[$queue] = array(
-            'forks' => $forks,
-            'tasks_per_fork' => $tasks_per_fork,
-            'manager_queue' => $in_memory_queue_size,
-            'logger' => $logger ? $logger : $this->logger,
+            'forks_count' => $forksCount,
+            'tasks_per_fork' => $tasksPerFork,
+            'create_logger' => $createLogger,
         );
-        $this->jobs_queue[$queue] = array();
     }
 
-    public function cyclesLimit($cycles_limit)
+    public function cyclesLimit($cyclesLimit)
     {
-        $this->cycles_limit = $cycles_limit;
+        $this->cyclesLimit = $cyclesLimit;
     }
 
-    public function cyclesUsleep($cycle_usleep)
+    public function cyclesUsleep($cycleUsleep)
     {
-        $this->cycle_usleep = $cycle_usleep;
+        $this->cycleUsleep = $cycleUsleep;
     }
 
-    public function cleanupSeconds($cleanup_seconds)
+    public function cleanupSeconds($cleanupStorageSeconds)
     {
-        $this->cleanup_seconds = $cleanup_seconds;
+        $this->cleanupStorageSecondsseconds = $cleanupStorageSeconds;
     }
 
-    public function cleanupEveryCycles($cleanup_every_cycles)
+    public function cleanupEveryCycles($cleanupEveryCycles)
     {
-        $this->cleanup_every_cycles = $cleanup_every_cycles;
+        $this->cleanupEveryCycles = $cleanupEveryCycles;
     }
 
-    public function forkMaxExecutionTimeInit($fork_max_execution_time_init)
+    public function forkMaxExecutionTimeInit($forkMaxExecutionTimeInit)
     {
-        $this->fork_max_execution_time_init = $fork_max_execution_time_init;
+        $this->forkMaxExecutionTimeInit = $forkMaxExecutionTimeInit;
     }
 
     public function start()
@@ -108,74 +110,66 @@ class Manager
         $this->forksStateFileInit();
 
         while (true) {
-            $this->cleanup();
+            $this->cleanupStorage();
             $this->cycle();
-            $this->cycles_done ++;
+            $this->cyclesDone ++;
 
-            if ($this->cycles_limit !== null && $this->cycles_done >= $this->cycles_limit) {
+            if ($this->cyclesLimit !== null && $this->cyclesDone >= $this->cyclesLimit) {
                 break;
             }
 
-            usleep($this->cycle_usleep);
+            usleep($this->cycleUsleep);
         }
     }
 
-    private function cleanup()
+    private function cleanupStorage()
     {
-        if ($this->cycles_done !== 0 && $this->cycles_done % $this->cleanup_every_cycles !== 0) {
+        if ($this->cyclesDone !== 0 && $this->cyclesDone % $this->cleanupEveryCycles !== 0) {
             return;
         }
 
-        $jobs_deleted = $this->storage->cleanup(time() - $this->cleanup_seconds);
+        $jobs_deleted = $this->storage->cleanup(time() - $this->cleanupStorageSeconds);
+        $this->eventHandler->cleanupStorage($jobs_deleted);
         //@todo separate success deleted and fail deleted count
         $this->logger->info('storage cleanup done, jobs deleted: ' . $jobs_deleted);
     }
 
     private function cycle()
     {
-        $this->logger->debug('cycle start ' . $this->cycles_done);
-
-        // output debug stats
-        $stats = '';
-        foreach ($this->jobs_queue as $queue => $items) {
-            $stats .= "$queue: " . count($items) . ' ';
-        }
-        $this->logger->debug('in-memory queue jobs: ' . $stats);
+        $this->logger->debug('cycle start ' . $this->cyclesDone);
 
         $this->actualizeForks();
 
         // start new forks
-        foreach ($this->queues as $queue => $queue_params) {
-            $this->fetchQueue($queue, $queue_params);
-
-            // cut queue part
-            $jobs2fork = array_splice($this->jobs_queue[$queue], 0, $this->queues[$queue]['tasks_per_fork']);
-
-            // calculate max_execution_time
-            /* @var JobRow $jobRow */
-            $max_execution_time = $this->fork_max_execution_time_init; // seconds initial for system service needs
-            foreach ($jobs2fork as $index => $jobRow) {
-                $job = Helper::initJob($jobRow, $this->container, $this->logger);
-                if (!$job) {
-                    $this->storage->markFailPermanent($jobRow);
-                    unset($jobs2fork[$index]);
-                    continue;
-                }
-                $max_execution_time += $job->getMaxExecutionTime();
-            }
+        foreach ($this->queues as $queue => $queueParams) {
+            $jobs2fork = $this->storage->getJobs($queue, $queueParams['tasks_per_fork']);
+            $this->logger->debug("{$queue}: fetched jobs: " . count($jobs2fork));
 
             if (empty($jobs2fork)) {
                 $this->logger->debug("{$queue}: no jobs in queue");
                 continue;
             }
 
+            // calculate max_execution_time
+            /* @var JobRow $jobRow */
+            $max_execution_time = $this->forkMaxExecutionTimeInit; // seconds initial for system service needs
+            foreach ($jobs2fork as $index => $jobRow) {
+                $job = $this->helper->initJob($queue, $jobRow, $this->logger);
+                if (!$job) {
+                    unset($jobs2fork[$index]);
+                    continue;
+                }
+                $max_execution_time += $job->getMaxExecutionTime();
+            }
+
             // check if one more fork is avaliable
-            if (isset($this->forks_queue_pids[$queue]) && count($this->forks_queue_pids[$queue]) >= $this->queues[$queue]['forks']) {
-                $this->logger->debug("{$queue}: forks limit reached");
+            if (isset($this->forks[$queue]) && count($this->forks[$queue]) >= $this->queues[$queue]['forks_count']) {
+                $this->logger->debug("{$queue}: forks count limit reached");
                 continue;
             }
 
             $this->storage->beforeFork();
+            $this->eventHandler->beforeFork();
 
             $pid = $this->isolator->pcntl_fork();
             if ($pid === -1) {
@@ -191,19 +185,21 @@ class Manager
                 );
                 $this->logger->info("making new fork", $context);
 
-                $this->forks_queue_pids[$queue][] = array(
+                $this->forks[$queue][] = array(
                     'pid' => $pid,
                     'time_start' => time(),
                     'time_kill_timeout' => time() + $max_execution_time,
-                    'job_ids' => array_map(function(JobRow $jobRow){return $jobRow->getId();}, $jobs2fork),
+                    'jobs' => $jobs2fork,
                 );
                 $this->saveForksState();
             } else {
                 // we are fork
                 $fork = new Fork(
                     $this->storage,
-                    $queue_params['logger'],
+                    $queueParams['create_logger']->__invoke(getmypid()),
                     $this->isolator,
+                    $this->eventHandler,
+                    $this->helper,
                     $this->container,
                     $queue,
                     $jobs2fork,
@@ -223,47 +219,60 @@ class Manager
         }
 
         //remove dead forks from array
-        foreach ($this->forks_queue_pids as $queue => $pids) {
-            foreach ($pids as $index => $pid_info) {
-                if ($this->isolator->posix_kill($pid_info['pid'], SIG_DFL)) {
+        foreach ($this->forks as $queue => $forks) {
+            foreach ($forks as $index => $fork_info) {
+                if ($this->isolator->posix_kill($fork_info['pid'], SIG_DFL)) {
                     //check timeout
-                    if (time() <= $pid_info['time_kill_timeout']) {
-                        $this->logger->debug("{$queue}: FORK {$pid_info['pid']} alive");
+                    if (time() <= $fork_info['time_kill_timeout']) {
+                        $this->logger->debug("{$queue}: FORK {$fork_info['pid']} alive");
                     } else {
-                        $kill_result = $this->isolator->posix_kill($pid_info['pid'], SIGTERM);
-                        $this->logger->error("{$queue}: FORK {$pid_info['pid']} timeout, kill result: "
+                        $kill_result = $this->isolator->posix_kill($fork_info['pid'], SIGTERM);
+                        $this->logger->error("{$queue}: FORK {$fork_info['pid']} timeout, kill result: "
                             . var_export($kill_result, true));
 
-                        $this->storage->markTimeoutIfInProgress($pid_info['job_ids']);
+                        /** @var JobRow $job */
+                        foreach ($fork_info['jobs'] as $job) {
+                            if ($this->storage->markTimeoutIfInProgress($queue, $job)) {
+                                $this->logger->debug("{$queue}: JOB {$job->getId()} timeout");
+                                $this->eventHandler->jobTimeout($queue, $job);
+                            }
+                        }
 
-                        unset($this->forks_queue_pids[$queue][$index]);
+                        unset($this->forks[$queue][$index]);
                     }
                 } else {
-                    $this->logger->debug("{$queue}: FORK {$pid_info['pid']} dead");
-                    $this->storage->markErrorIfInProgress($pid_info['job_ids']);
-                    unset($this->forks_queue_pids[$queue][$index]);
+                    $this->logger->debug("{$queue}: FORK {$fork_info['pid']} dead");
+
+                    /** @var JobRow $job */
+                    foreach ($fork_info['jobs'] as $job) {
+                        if ($this->storage->markErrorIfInProgress($queue, $job)) {
+                            $this->logger->debug("{$queue}: JOB {$job->getId()} error");
+                            $this->eventHandler->jobError($queue, $job);
+                        }
+                    }
+                    unset($this->forks[$queue][$index]);
                 }
             }
             // reindex array
-            $this->forks_queue_pids[$queue] = array_values($this->forks_queue_pids[$queue]);
+            $this->forks[$queue] = array_values($this->forks[$queue]);
         }
         $this->saveForksState();
     }
 
     private function forksStateFileInit()
     {
-        if ($this->forks_state_file === null) {
+        if ($this->forksStateFile === null) {
             return;
         }
 
-        if (is_dir($this->forks_state_file)) {
+        if (is_dir($this->forksStateFile)) {
             throw new \InvalidArgumentException('directory');
         }
 
-        if (is_file($this->forks_state_file)) {
-            $check = $this->forks_state_file;
+        if (is_file($this->forksStateFile)) {
+            $check = $this->forksStateFile;
         } else {
-            $check = dirname($this->forks_state_file);
+            $check = dirname($this->forksStateFile);
         }
 
         if (!is_readable($check)) {
@@ -273,47 +282,27 @@ class Manager
             throw new \InvalidArgumentException('file not writeable');
         }
 
-        if (is_file($this->forks_state_file)) {
-            $json = file_get_contents($this->forks_state_file);
-            if (!$json) {
-                $this->logger->error('file_get_contents failed ' . $this->forks_state_file);
+        if (is_file($this->forksStateFile)) {
+            $serializedBody = file_get_contents($this->forksStateFile);
+            if (!$serializedBody) {
+                $this->logger->error('file_get_contents failed ' . $this->forksStateFile);
             }
-            $json = json_decode($json, true);
-            if (!is_array($json)) {
+            $body = unserialize($serializedBody);
+            if (!is_array($body)) {
                 $this->logger->error('json invalid');
                 return;
             }
-            $this->forks_queue_pids = $json;
+            $this->forks = $body;
             $this->logger->debug('pids state loaded from file');
         }
     }
 
     private function saveForksState()
     {
-        if ($this->forks_state_file === null) {
+        if ($this->forksStateFile === null) {
             return;
         }
 
-        file_put_contents($this->forks_state_file, json_encode($this->forks_queue_pids));
-    }
-
-    private function fetchQueue($queue, array $queue_params)
-    {
-        if (count($this->jobs_queue[$queue]) < $queue_params['manager_queue']) {
-            $limit = $queue_params['manager_queue'] - count($this->jobs_queue[$queue]);
-
-            $exclude_ids = array();
-            foreach ($this->jobs_queue[$queue] as $jobRow) {
-                $exclude_ids[] = $jobRow->getId();
-            }
-
-            $jobs_new = $this->storage->getJobs($queue, $exclude_ids, $limit);
-            $this->jobs_queue[$queue] = array_merge($this->jobs_queue[$queue], $jobs_new);
-            $this->logger->debug("{$queue}: fetched jobs: " . count($jobs_new)
-                . ", total in-memory jobs: " . count($this->jobs_queue[$queue]));
-        } else {
-            $this->logger->debug("{$queue}: in-memory jobs limit reached: "
-                . $queue_params['manager_queue']);
-        }
+        file_put_contents($this->forksStateFile, serialize($this->forks));
     }
 }

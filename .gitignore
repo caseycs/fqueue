@@ -1,4 +1,4 @@
 .idea
 composer.lock
 vendor
-demo_forks_stage.json
+demo_forks_stage.serialized

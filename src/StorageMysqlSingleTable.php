@@ -57,17 +57,11 @@ class StorageMysqlSingleTable implements StorageInterface
         return (int)$this->pdo->lastInsertId();
     }
 
-    public function getJobs($queue, array $exclude_ids, $limit)
+    public function getJobs($queue, $limit)
     {
         $this->init();
 
         $queue = $this->pdo->quote($queue);
-        if (empty($exclude_ids)) {
-            $exclude_ids = '';
-        } else {
-            $exclude_ids = 'AND id NOT IN (' . join(',', $exclude_ids) . ')';
-        }
-
         $sth = $this->pdo->query("SELECT * FROM {$this->database}.{$this->table}
             WHERE
               queue = {$queue}
@@ -97,11 +91,11 @@ class StorageMysqlSingleTable implements StorageInterface
         return $result;
     }
 
-    public function cleanup($last_unixtime)
+    public function cleanup($lastUnixtime)
     {
         $this->init();
 
-        $finish_time = date('Y-m-d H:i:s', $last_unixtime);
+        $finish_time = date('Y-m-d H:i:s', $lastUnixtime);
 
         $sth = $this->pdo->prepare("DELETE FROM {$this->database}.{$this->table}
             WHERE
@@ -118,7 +112,7 @@ class StorageMysqlSingleTable implements StorageInterface
         $this->pdo = null;
     }
 
-    public function markInProgress(JobRow $JobRow)
+    public function markInProgress($queue, JobRow $JobRow)
     {
         $this->init();
 
@@ -132,7 +126,7 @@ class StorageMysqlSingleTable implements StorageInterface
         $sth->execute(array(JobRow::STATUS_IN_PROGRESS, $JobRow->getId()));
     }
 
-    public function markSuccess(JobRow $JobRow)
+    public function markSuccess($queue, JobRow $JobRow)
     {
         $this->init();
 
@@ -142,13 +136,12 @@ class StorageMysqlSingleTable implements StorageInterface
               status = ?,
               next_retry_time = null
             WHERE
-              id = ?
-              AND status = ?");
-        $sth->execute(array(JobRow::STATUS_SUCCESS, $JobRow->getId(), JobRow::STATUS_IN_PROGRESS));
+              id = ?");
+        $sth->execute(array(JobRow::STATUS_SUCCESS, $JobRow->getId()));
         assert($sth->rowCount() === 1);
     }
 
-    public function markFailTemporary(JobRow $JobRow)
+    public function markFailInit($queue, JobRow $JobRow)
     {
         $this->init();
 
@@ -158,13 +151,27 @@ class StorageMysqlSingleTable implements StorageInterface
               status = ?,
               next_retry_time = if(retries_remaining = 0, null, NOW() + interval retry_timeout second)
             WHERE
-              id = ?
-              AND status = ?");
-        $sth->execute(array(JobRow::STATUS_FAIL_TEMPORARY, $JobRow->getId(), JobRow::STATUS_IN_PROGRESS));
+              id = ?");
+        $sth->execute(array(JobRow::STATUS_FAIL_INIT, $JobRow->getId()));
         assert($sth->rowCount() === 1);
     }
 
-    public function markFailPermanent(JobRow $JobRow)
+    public function markFailTemporary($queue, JobRow $JobRow)
+    {
+        $this->init();
+
+        $sth = $this->pdo->prepare("UPDATE {$this->database}.{$this->table}
+            SET
+              finish_time = NOW(),
+              status = ?,
+              next_retry_time = if(retries_remaining = 0, null, NOW() + interval retry_timeout second)
+            WHERE
+              id = ?");
+        $sth->execute(array(JobRow::STATUS_FAIL_TEMPORARY, $JobRow->getId()));
+        assert($sth->rowCount() === 1);
+    }
+
+    public function markFailPermanent($queue, JobRow $JobRow)
     {
         $this->init();
 
@@ -175,13 +182,28 @@ class StorageMysqlSingleTable implements StorageInterface
               retries_remaining = 0,
               next_retry_time = null
             WHERE
-              id = ?
-              AND status IN(?,?)");
-        $sth->execute(array(JobRow::STATUS_FAIL_PERMANENT, $JobRow->getId(), JobRow::STATUS_NEW, JobRow::STATUS_IN_PROGRESS));
+              id = ?");
+        $sth->execute(array(JobRow::STATUS_FAIL_PERMANENT, $JobRow->getId()));
         assert($sth->rowCount() === 1);
     }
 
-    public function markError(JobRow $JobRow)
+    public function markReturnInvalid($queue, JobRow $JobRow)
+    {
+        $this->init();
+
+        $sth = $this->pdo->prepare("UPDATE {$this->database}.{$this->table}
+            SET
+              finish_time = NOW(),
+              status = ?,
+              retries_remaining = 0,
+              next_retry_time = null
+            WHERE
+              id = ?");
+        $sth->execute(array(JobRow::STATUS_RETURN_INVALID, $JobRow->getId()));
+        assert($sth->rowCount() === 1);
+    }
+
+    public function markError($queue, JobRow $JobRow)
     {
         $this->init();
 
@@ -192,13 +214,12 @@ class StorageMysqlSingleTable implements StorageInterface
               next_retry_time = null,
               retries_remaining = 0
             WHERE
-              id = ?
-              AND status = ?");
-        $sth->execute(array(JobRow::STATUS_ERROR, $JobRow->getId(), JobRow::STATUS_IN_PROGRESS));
+              id = ?");
+        $sth->execute(array(JobRow::STATUS_ERROR, $JobRow->getId()));
         assert($sth->rowCount() === 1);
     }
 
-    public function markTimeoutIfInProgress(array $job_ids)
+    public function markTimeoutIfInProgress($queue, JobRow $jobRow)
     {
         $this->init();
 
@@ -207,18 +228,18 @@ class StorageMysqlSingleTable implements StorageInterface
               finish_time = NOW(),
               status = ?,
               next_retry_time = if(retries_remaining = 0, null, next_retry_time + interval timeout seconds)
-            WHERE id IN(?) AND status = ?");
+            WHERE id = ? AND status = ?");
         $params = array(
             JobRow::STATUS_TIMEOUT,
-            join(',', $job_ids),
+            $jobRow->getId(),
             JobRow::STATUS_IN_PROGRESS
         );
         $count = $sth->execute($params);
 
-        return $count;
+        return (bool)$count;
     }
 
-    public function markErrorIfInProgress(array $job_ids)
+    public function markErrorIfInProgress($queue, JobRow $jobRow)
     {
         $this->init();
 
@@ -230,12 +251,12 @@ class StorageMysqlSingleTable implements StorageInterface
             WHERE id IN(?) AND status = ?");
         $params = array(
             JobRow::STATUS_ERROR,
-            join(',', $job_ids),
+            $jobRow->getId(),
             JobRow::STATUS_IN_PROGRESS
         );
         $count = $sth->execute($params);
 
-        return $count;
+        return (bool)$count;
     }
 
     protected function init()

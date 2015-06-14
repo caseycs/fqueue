@@ -8,10 +8,15 @@ class JobRow
     const STATUS_SUCCESS = 'success';
     const STATUS_FAIL_TEMPORARY = 'fail_temporary';
     const STATUS_FAIL_PERMANENT = 'fail_permanent';
+    const STATUS_FAIL_INIT = 'fail_init';
+    const STATUS_RETURN_INVALID = 'return_invalid';
     const STATUS_ERROR = 'error';
     const STATUS_TIMEOUT = 'timeout';
 
-    private $class, $id;
+    private $class;
+
+    private $id;
+
     private $params = array();
 
     public function __construct($class = null, array $params = array(), $id = null)

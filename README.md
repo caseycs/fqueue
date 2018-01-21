@@ -1,5 +1,9 @@
 # FQueue
 
+Project is abandoned, please use [php-resque](https://github.com/chrisboulton/php-resque) instead.
+
+##
+
 [![Build Status](https://travis-ci.org/caseycs/fqueue.svg?branch=master)](https://travis-ci.org/caseycs/fqueue)
 
 Forking queue processor on PHP.
